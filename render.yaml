@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: lumen
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: lumen@gmail.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SITE_URL
+        value: https://lumen.example.com
+    # Optional: attach a persistent disk (requires a paid Render plan) so that
+    # uploaded advertisements and JSON data survive restarts/redeploys.
+    # disk:
+    #   name: lumen-data
+    #   mountPath: /opt/render/project/src/uploads
+    #   sizeGB: 1

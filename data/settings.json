@@ -1,0 +1,90 @@
+{
+  "appName": "Lumen",
+  "tagline": "Local Digital Advertising Platform",
+  "pricing": {
+    "photo": 100,
+    "video": 200
+  },
+  "currency": "₹",
+  "durations": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "dayOptions": [
+    1,
+    3,
+    7,
+    15,
+    30,
+    90,
+    180,
+    365
+  ],
+  "maxVideoSeconds": 60,
+  "allowedImageTypes": [
+    "image/png",
+    "image/jpeg",
+    "image/webp"
+  ],
+  "allowedVideoTypes": [
+    "video/mp4",
+    "video/quicktime",
+    "video/webm"
+  ],
+  "maxImageMB": 10,
+  "maxVideoMB": 500,
+  "timezone": "Asia/Kolkata",
+  "logoCycleSeconds": 30,
+  "logoVisibleSeconds": 5,
+  "qrCycleSeconds": 30,
+  "qrVisibleSeconds": 5,
+  "transitionMs": 1000,
+  "transitionStyles": [
+    "fade",
+    "zoom",
+    "glass-blur",
+    "crossfade"
+  ],
+  "siteUrl": "https://lumen.example.com",
+  "defaultVideoDuration": 10,
+  "pricingTiers": {
+    "image": [
+      {
+        "minDuration": 1,
+        "maxDuration": 5,
+        "pricePerDay": 100
+      },
+      {
+        "minDuration": 6,
+        "maxDuration": 10,
+        "pricePerDay": 150
+      }
+    ],
+    "video": [
+      {
+        "minDuration": 1,
+        "maxDuration": 15,
+        "pricePerDay": 200
+      },
+      {
+        "minDuration": 16,
+        "maxDuration": 30,
+        "pricePerDay": 300
+      },
+      {
+        "minDuration": 31,
+        "maxDuration": 45,
+        "pricePerDay": 400
+      },
+      {
+        "minDuration": 46,
+        "maxDuration": 60,
+        "pricePerDay": 500
+      }
+    ]
+  }
+}

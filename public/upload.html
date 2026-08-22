@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Advertisement — Lumen</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v20260820a">
+<link rel="stylesheet" href="assets/css/base.css?v20260820a">
+<link rel="stylesheet" href="assets/css/components.css?v20260820a">
+<link rel="stylesheet" href="assets/css/pages.css?v20260820a">
+</head>
+<body>
+<!-- Three.js / BAS / GSAP for the shatter image<->image transition (used by network preview).
+     Loaded as classic scripts in exact order so each finishes before the next. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.118.3/build/three.min.js"
+        onerror="window.__lumenTransitionDepsFailed=true;console.warn('[Lumen] three.js (legacy build) failed to load - image transitions will be unavailable.')"></script>
+<script src="assets/js/transitions/mini-bas.js?v20260820a"
+        onerror="window.__lumenTransitionDepsFailed=true;console.warn('[Lumen] mini-bas.js failed to load - image transitions will be unavailable.')"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+        onerror="window.__lumenTransitionDepsFailed=true;console.warn('[Lumen] gsap failed to load - image transitions will be unavailable.')"></script>
+
+<script type="module" src="assets/js/pages/upload.js?v20260820a"></script>
+</body>
+</html>
+
+
+
