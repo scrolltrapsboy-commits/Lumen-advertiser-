@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lumen — Local Digital Advertising Platform</title>
+<meta name="description" content="Lumen connects businesses with local digital screens for effortless advertising.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v20260820a">
+<link rel="stylesheet" href="assets/css/base.css?v20260820a">
+<link rel="stylesheet" href="assets/css/components.css?v20260820a">
+<link rel="stylesheet" href="assets/css/pages.css?v20260820a">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="brand" href="/"><span class="brand-mark"></span> Lumen</a>
+    <div class="flex gap-2 items-center" id="nav-auth-area">
+      <a href="login.html" class="btn btn-ghost btn-sm">Log in</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SECTION 01 — HERO -->
+<section class="hero">
+  <div class="hero-orb orb-1"></div>
+  <div class="hero-orb orb-2"></div>
+
+  <div class="hero-copy">
+    <div class="hero-badge"><span class="dot"></span> Now live across local screens</div>
+    <h1>Local advertising that feels local.</h1>
+    <p class="lead">Upload once, choose a screen, and go live. Lumen turns nearby TVs into a premium advertising network for your business — no agency, no waiting.</p>
+    <div class="hero-actions" id="hero-cta">
+      <a href="signup.html" class="btn btn-primary">Upload Your Advertisement</a>
+      <a href="login.html" class="btn btn-secondary">Advertiser Login</a>
+    </div>
+    <div class="hero-metrics">
+      <div><div class="hero-metric-value" id="stat-screens-online">—</div><div class="hero-metric-label">Screens online</div></div>
+      <div><div class="hero-metric-value">&lt; 60s</div><div class="hero-metric-label">Upload to preview</div></div>
+      <div><div class="hero-metric-value">0%</div><div class="hero-metric-label">Agency fees</div></div>
+    </div>
+  </div>
+
+  <div class="hero-stage">
+    <div class="spatial-screen">
+      <div class="spatial-screen-panel">
+        <div class="spatial-screen-canvas" id="hero-network-preview" style="padding:0;">
+          <span class="spatial-screen-live" style="z-index:5;"><span class="dot"></span> LIVE</span>
+        </div>
+      </div>
+      <div class="spatial-screen-shadow"></div>
+    </div>
+    <div class="spatial-panel spatial-panel--screens">
+      <div class="value" id="stat-screens-panel">—</div>
+      <div class="label">Online now</div>
+    </div>
+    <div class="spatial-panel spatial-panel--live">
+      <div class="value" id="stat-clock">—</div>
+      <div class="label">Local time</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02 — HOW LUMEN WORKS -->
+<section class="section">
+  <div class="section-head">
+    <div class="eyebrow">How it works</div>
+    <h2>From file to display in three steps.</h2>
+  </div>
+  <div class="steps-row">
+    <div class="step-card glass-card glass-card--hover">
+      <div class="step-num">01</div>
+      <h3>Upload</h3>
+      <p class="text-secondary">Drop an image or short video and preview it exactly as it will appear on screen.</p>
+    </div>
+    <div class="step-card glass-card glass-card--hover">
+      <div class="step-num">02</div>
+      <h3>Select a screen</h3>
+      <p class="text-secondary">Search live screens by location, check availability, and reserve your slot instantly.</p>
+    </div>
+    <div class="step-card glass-card glass-card--hover">
+      <div class="step-num">03</div>
+      <h3>Go live</h3>
+      <p class="text-secondary">Once validated, your advertisement plays automatically — no waiting for approval.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03 — SCREEN NETWORK -->
+<section class="section" id="screen-network">
+  <div class="section-head">
+    <div class="eyebrow">The network</div>
+    <h2>A growing network of local screens.</h2>
+    <p>Every screen is a real, physical display already earning attention in the places your customers already go.</p>
+  </div>
+  <div class="network-stage glass-card">
+    <div class="network-node network-node--n1"><span class="dot"></span> Downtown Cafe</div>
+    <div class="network-node network-node--n2"><span class="dot"></span> Riverside Gym</div>
+    <div class="network-node network-node--center">Lumen Network</div>
+    <div class="network-node network-node--n3"><span class="dot"></span> Central Mall</div>
+    <div class="network-node network-node--n4"><span class="dot"></span> Union Station</div>
+  </div>
+</section>
+
+<!-- SECTION 04 — CAMPAIGN -->
+<section class="section split-section">
+  <div>
+    <div class="eyebrow">Campaigns</div>
+    <h2 style="font-size:var(--fs-display);margin-top:var(--space-3);line-height:1.15;">A workflow built for small campaigns, not big agencies.</h2>
+    <p class="text-secondary mt-4" style="line-height:1.6;max-width:46ch;">Set a duration, pick a screen, and track status in one place. No contracts, no minimum spend.</p>
+  </div>
+  <div class="split-visual">
+    <div class="glass-card glass-card--floating mini-campaign">
+      <div class="mini-campaign-row"><span>Riverside Coffee Co.</span><span class="badge badge-online">Running</span></div>
+      <div class="mini-campaign-row"><span>Union Station Promo</span><span class="badge badge-pending">Pending</span></div>
+      <div class="mini-campaign-row"><span>Weekend Special</span><span class="badge badge-available">Scheduled</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 05 — ANALYTICS -->
+<section class="section split-section reverse">
+  <div>
+    <div class="eyebrow">Analytics</div>
+    <h2 style="font-size:var(--fs-display);margin-top:var(--space-3);line-height:1.15;">See exactly when and where your ad played.</h2>
+    <p class="text-secondary mt-4" style="line-height:1.6;max-width:46ch;">Lightweight, honest analytics — play counts and active hours, without vanity metrics.</p>
+  </div>
+  <div class="split-visual">
+    <div class="glass-card glass-card--floating mini-analytics">
+      <div class="eyebrow">Plays this week</div>
+      <div class="mini-analytics-bars">
+        <span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span>
+        <span style="height:80%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:70%"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 06 — FINAL CTA -->
+<div class="cta-section">
+  <h2>Ready to put your business on screen?</h2>
+  <div class="hero-actions" id="final-cta">
+    <a href="signup.html" class="btn btn-primary">Start Your Campaign</a>
+    <a href="login.html" class="btn btn-secondary">Advertiser Login</a>
+  </div>
+</div>
+
+<!-- SECTION 07 — FOOTER -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-top">
+      <div class="site-footer-brand">
+        <a class="brand" href="/"><span class="brand-mark"></span> Lumen</a>
+        <p class="site-footer-tagline">Your screens.<br>Your network.<br>Your audience.</p>
+        <p class="site-footer-desc">A smarter way to manage, publish and monitor digital advertisements across your network.</p>
+      </div>
+
+      <nav class="site-footer-col" aria-label="Platform">
+        <div class="eyebrow">Platform</div>
+        <ul>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="history.html">Advertisements</a></li>
+          <li><a href="admin.html#screens">Screens</a></li>
+          <li><a href="admin.html#analytics">Analytics</a></li>
+          <li><a href="upload.html">Campaigns</a></li>
+        </ul>
+      </nav>
+
+      <nav class="site-footer-col" aria-label="Network">
+        <div class="eyebrow">Network</div>
+        <ul>
+          <li><a href="admin.html#screens">Display Screens</a></li>
+          <li><a href="#screen-network">Screen Status</a></li>
+          <li><a href="upload.html">Advertise</a></li>
+          <li><a href="display.html">Live Displays</a></li>
+          <li><a href="#screen-network">Network Overview</a></li>
+        </ul>
+      </nav>
+
+      <nav class="site-footer-col" aria-label="Resources">
+        <div class="eyebrow">Resources</div>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Advertising Guide</a></li>
+          <li><a href="#">Video Guidelines</a></li>
+          <li><a href="#">Contact Support</a></li>
+        </ul>
+      </nav>
+
+      <nav class="site-footer-col" aria-label="Company">
+        <div class="eyebrow">Company</div>
+        <ul>
+          <li><a href="#">About Lumen</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">System Status</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="site-footer-divider"></div>
+
+    <div class="site-footer-bottom">
+      <div class="site-footer-copy">&copy; 2026 Lumen Digital Ads</div>
+      <div class="site-footer-status" id="footer-network-status"><span class="dot"></span> Checking network status\u2026</div>
+      <div class="site-footer-social">
+        <a href="#" aria-label="Lumen on Instagram">Instagram</a>
+        <a href="#" aria-label="Lumen on YouTube">YouTube</a>
+        <a href="#" aria-label="Lumen on LinkedIn">LinkedIn</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/pages/landing.js?v20260820a"></script>
+</body>
+</html>
+
+
+

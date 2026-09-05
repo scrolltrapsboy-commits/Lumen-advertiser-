@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen Display</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v20260820a">
+<link rel="stylesheet" href="assets/css/base.css?v20260820a">
+<link rel="stylesheet" href="assets/css/components.css?v20260820a">
+<link rel="stylesheet" href="assets/css/pages.css?v20260820a">
+<style>html,body{margin:0;background:#000;overflow:hidden;height:100%;}</style>
+</head>
+<body>
+<div class="player-connect glass" id="connect-view" style="display:none;">
+  <div class="glass-card glass-card--floating auth-card">
+    <a class="brand" href="index.html" style="justify-content:center;margin-bottom:24px;"><span class="brand-mark"></span> Lumen</a>
+    <h1 class="auth-title" style="font-size:1.4rem;">Connect this display</h1>
+    <p class="auth-sub">Enter the Screen ID assigned by your administrator</p>
+    <form id="connect-form" novalidate>
+      <div class="field">
+        <label for="screen-id-input">Screen ID</label>
+        <input type="text" id="screen-id-input" placeholder="e.g. SCREEN001" required autocomplete="off" style="text-transform:uppercase;">
+        <div id="connect-error" class="field-error-msg" style="display:none;"></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Connect</button>
+    </form>
+  </div>
+</div>
+<div id="player-view"></div>
+
+<script type="module" src="assets/js/pages/display.js?v20260820a"></script>
+</body>
+</html>
+
+
+

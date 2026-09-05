@@ -1,0 +1,49 @@
+LUMEN ADVERTISER - BIG DISPLAY TRANSITION FIX
+Verification summary (run against the real server + real Chromium via Playwright)
+====================================================================
+
+FILES CHANGED:
+  - public/assets/js/components/particle-transition.js  (fully rewritten)
+  - test-harness/bas-transition-test.mjs                 (new test harness, added)
+
+FILES CONFIRMED UNCHANGED:
+  - public/assets/js/components/network-preview.js   md5: 44e72026b83cb8c4bc183ca49baadcb2
+  - public/assets/js/pages/display.js                 (0 edits - not required)
+  - public/assets/css/components.css .lumen-player-perspective fix intact
+  - data/ads.json, data/screens.json  (restored to original content after testing)
+
+VERIFIED VIA REAL CHROMIUM (screenshots + DOM inspection), NOT static analysis:
+  1. IMAGE -> IMAGE   (landscape -> portrait): PASS - fragmented streaky reveal,
+     diagonal control-point sweep matches reference clip, no black frame, no stretch.
+  2. IMAGE -> VIDEO   (portrait -> landscape): PASS - video decoded frame used as
+     texture, fine-grained fragment edge, no black frame, no stretch.
+  3. VIDEO -> VIDEO   (landscape -> portrait): PASS - portrait video correctly
+     pillarboxed (no stretch), fragmented reveal, no black frame.
+  4. VIDEO -> IMAGE   (portrait -> landscape): PASS - diagonal streak visible,
+     no black frame.
+  - 20x 1-second black-frame samples across a full rotation: 0/20 flagged.
+  - All 12 timed screenshots programmatically scanned for near-black pixel %:
+    max 4.8%, all from legitimate letterbox/pillarbox bars, none fully black.
+  - Active layer getBoundingClientRect(): 1280x720 (full viewport) confirmed.
+  - Audio: outgoing video muted=true immediately at transition start (confirmed
+    via live DOM inspection while video-> transitions run); exactly one
+    unmuted+playing <video> at any moment; backdrop copy always muted.
+  - WebGL renderer detected: SwiftShader software (this sandbox only) - engine
+    ran real-time without dropped frames even under software rendering.
+
+NOT TESTABLE IN THIS SANDBOX (documented, not skipped silently):
+  - MP4/H.264 video decode specifically: Playwright's bundled open-source
+    Chromium build in this container has no H.264 codec support at all
+    (confirmed via isolated <video> test: DEMUXER_ERROR_NO_SUPPORTED_STREAMS
+    even for a freshly re-encoded, faststart, baseline-profile MP4, while an
+    identical WebM/VP9 file decoded correctly). This is a property of this
+    specific test browser build, not of the transition code - it does not
+    touch codecs/containers at all, only videoWidth/videoHeight/readyState/
+    requestVideoFrameCallback, which behave identically regardless of codec.
+    Verification above therefore used WebM test fixtures so the actual
+    pipeline (texture upload, frame watching, contain-fit, audio muting)
+    could be exercised end-to-end against a real HTMLVideoElement. Your
+    production/kiosk browser (real Chrome and virtually everything else)
+    supports H.264 normally.
+  - Real unmuted-audio *sound* output (Playwright/headless has no audio
+    device) - verified via the muted/paused/currentTime DOM state instead.

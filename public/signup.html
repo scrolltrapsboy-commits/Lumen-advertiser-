@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sign up — Lumen</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v20260820a">
+<link rel="stylesheet" href="assets/css/base.css?v20260820a">
+<link rel="stylesheet" href="assets/css/components.css?v20260820a">
+<link rel="stylesheet" href="assets/css/pages.css?v20260820a">
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-visual">
+    <div class="tv-frame" style="max-width: 340px; margin: 0 auto;">
+      <div class="tv-preview-wrap">
+        <div class="tv-preview" id="signup-preview"></div>
+      </div>
+      <div class="tv-stand"></div>
+      <div class="tv-stand-base"></div>
+    </div>
+  </div>
+
+  <div class="auth-form-side">
+    <div class="auth-card">
+      <a class="brand" href="index.html"><span class="brand-mark"></span> Lumen</a>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-sub">Start advertising on local screens today</p>
+
+      <form id="signup-form" novalidate>
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required autocomplete="name">
+        </div>
+        <div class="field mt-4">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@business.com" required autocomplete="email">
+        </div>
+        <div class="field mt-4">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="At least 6 characters" required autocomplete="new-password">
+        </div>
+        <div class="field mt-4">
+          <label for="confirm">Confirm password</label>
+          <input type="password" id="confirm" name="confirm" placeholder="Re-enter password" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block mt-6" id="signup-submit">Create Account</button>
+      </form>
+
+      <div class="auth-footer">Already have an account? <a href="login.html">Log in</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="assets/js/pages/signup.js?v20260820a"></script>
+</body>
+</html>
+
+
+

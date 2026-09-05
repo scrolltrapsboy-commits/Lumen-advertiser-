@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: lumen
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: lumen@gmail.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SITE_URL
+        value: https://lumen.example.com
+      - key: DATA_ROOT
+        value: /var/data
+    # Persistent disk (requires a paid Render plan - not available on the
+    # free tier). Without this, data/*.json and public/uploads/* live on
+    # the container's local filesystem and are wiped on every redeploy,
+    # restart, and free-tier spin-down, so uploaded advertisements vanish.
+    # Both the JSON records and the uploaded media live under this single
+    # mount (see config/paths.js) since a Render disk only mounts one path.
+    disk:
+      name: lumen-data
+      mountPath: /var/data
+      sizeGB: 1

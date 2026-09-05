@@ -1,0 +1,979 @@
+/* ==========================================================================
+   LUMEN V3 — Page-specific layout & spatial composition
+   ========================================================================== */
+
+/* =========================================================
+   PREMIUM LIQUID GLASS QR
+   ========================================================= */
+
+.player-qr {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* =========================================================
+   QR VIDEO WALKER — a single WebGL <canvas> renders the active
+   video (place or pickup, swapped by qr-video-walker.js) with
+   REAL per-pixel alpha via a chroma-key shader (see
+   createChromaKeyRenderer() in qr-video-walker.js) - not
+   mix-blend-mode, which only fakes transparency and leaves
+   faint edge artifacts. The <video> elements themselves are
+   never displayed (display:none) - they're sampled as texture
+   sources only. A small borderless QR overlay is layered on
+   top, shown only during the 20s freeze (see qr-video-walker.js).
+   Purely additive: sits below the QR card's own z-index, never
+   intercepts clicks (pointer-events: none), and never touches
+   the QR card's own markup/CSS beyond toggling its opacity.
+   ========================================================= */
+.qr-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  overflow: hidden;
+}
+.qr-video-overlay-canvas {
+  position: fixed;
+  pointer-events: none;
+  display: block;
+}
+.qr-video-overlay-realqr {
+  position: fixed;
+  pointer-events: none;
+}
+.qr-video-overlay-realqr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   QR ADVERTISEMENT CARD
+   Redesigned to match the supplied reference screenshot:
+   dark rounded card, green->blue gradient-framed white QR
+   panel on the left, "Learn more / about us." heading + a
+   solid-green "<- scan here" CTA pill on the right.
+   ========================================================= */
+/* =========================================================
+   QR ADVERTISEMENT CARD
+   Proportions (aspect ratio, and the QR panel's share of the
+   card's width) are measured directly from the two supplied
+   place/pickup MP4s - both rest on the pixel-identical card
+   at left=107 top=106 right=1195 bottom=612 of their native
+   1280x720 frame, and the QR panel's own right edge sits at
+   x=655 (consistent across every row sampled). That gives:
+     card aspect  = (1195-107) / (612-106) = 1088/506 = 2.150
+     QR panel share of card width = (655-107)/1088 = 0.504
+   Using aspect-ratio (not a fixed height) so the live card's
+   actual on-screen shape matches the baked-in video card at
+   every breakpoint, not just the default desktop size - this
+   is what lets qr-video-walker.js's corner-anchored overlay
+   math line up on all four edges instead of only the corner
+   it explicitly anchors to.
+   ========================================================= */
+.player-qr-card {
+  position: relative;
+  width: 300px;
+  aspect-ratio: 2.15;
+
+  display: flex;
+  align-items: stretch;
+
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, #262626, #121212);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  overflow: hidden;
+}
+
+/* QR panel: gradient frame around a white square holding the real,
+   dynamically-generated SVG QR (see qr-code.js). Width is a share of
+   the card's own width (measured above), height always 100% of the
+   card - so it scales exactly with aspect-ratio at any breakpoint. */
+.player-qr-code {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 50.4%;
+  width: 50.4%;
+  height: 100%;
+
+  padding: 9%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(160deg, #8CE500, #1E90FF);
+}
+
+.player-qr-code svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+/* Text + CTA panel */
+.player-qr-info {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 10px 16px;
+}
+
+.player-qr-heading {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: 0.1px;
+}
+
+.player-qr-cta {
+  align-self: flex-start;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+
+  border-radius: 6px;
+
+  background: #A6E22E;
+  color: #111111;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.player-qr-cta-arrow {
+  font-size: 14px;
+  line-height: 1;
+}
+
+
+/* ==================== MARKETING / LANDING ==================== */
+
+.section { padding: var(--pad-section) var(--pad-page); width: 100%; max-width: var(--content-max); margin: 0 auto; }
+.section-head { max-width: 620px; margin-bottom: clamp(28px, 4vw, 52px); }
+.section-head .eyebrow { margin-bottom: var(--space-3); }
+.section-head h2 { font-size: var(--fs-display); line-height: 1.12; }
+.section-head p { color: var(--color-text-secondary); margin-top: var(--space-4); font-size: 1.02rem; line-height: 1.6; }
+
+/* ---- Hero: asymmetric spatial composition ---- */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: clamp(40px, 8vw, 96px) var(--pad-page) clamp(48px, 7vw, 88px);
+  min-height: 0;
+}
+
+.hero-copy { position: relative; z-index: 2; min-width: 0; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 7px 16px 7px 12px; border-radius: var(--radius-full);
+  background: var(--color-glass); border: 1px solid var(--color-border);
+  font-size: var(--fs-caption); color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
+  backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
+}
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 8px rgba(62,210,142,0.7); flex-shrink: 0; }
+
+.hero h1 {
+  font-size: var(--fs-hero);
+  line-height: 1.03;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+  margin-bottom: var(--space-6);
+  font-weight: var(--fw-black);
+}
+
+.hero p.lead {
+  color: var(--color-text-secondary);
+  max-width: 46ch;
+  font-size: clamp(0.98rem, 0.4vw + 0.9rem, 1.15rem);
+  margin-bottom: var(--space-8);
+  line-height: 1.6;
+}
+
+.hero-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+.hero-metrics { display: flex; gap: clamp(20px, 3vw, 40px); margin-top: var(--space-10); flex-wrap: wrap; }
+.hero-metric-value { font-size: 1.5rem; font-weight: var(--fw-bold); letter-spacing: -0.02em; }
+.hero-metric-label { font-size: var(--fs-xs); color: var(--color-text-tertiary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ---- Spatial stage: the floating 3D screen ---- */
+.hero-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1400px;
+}
+
+.hero-orb { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: -1; }
+.orb-1 { width: 46vw; max-width: 480px; height: 46vw; max-height: 480px; background: var(--color-accent); opacity: 0.16; top: -8%; left: -8%; }
+.orb-2 { width: 40vw; max-width: 420px; height: 40vw; max-height: 420px; background: var(--color-primary); opacity: 0.12; bottom: -10%; right: -6%; }
+
+.spatial-screen {
+  position: relative;
+  width: min(72%, 380px);
+  transform: rotateY(-14deg) rotateX(6deg);
+  transform-style: preserve-3d;
+  animation: screen-float 6s ease-in-out infinite;
+}
+@keyframes screen-float {
+  0%, 100% { transform: rotateY(-14deg) rotateX(6deg) translateY(0); }
+  50% { transform: rotateY(-11deg) rotateX(4deg) translateY(-14px); }
+}
+
+.spatial-screen-panel {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(155deg, #16181e 0%, #0a0b0f 100%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: var(--shadow-floating);
+  overflow: hidden;
+  padding: 10px;
+}
+.spatial-screen-panel::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--gradient-specular); mix-blend-mode: overlay; pointer-events: none;
+}
+.spatial-screen-canvas {
+  width: 100%; height: 100%; border-radius: calc(var(--radius-lg) - 8px);
+  background: var(--gradient-signal);
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-end; padding: var(--space-4);
+}
+.spatial-screen-canvas::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 55%);
+}
+.spatial-screen-adname { position: relative; color: #fff; font-weight: var(--fw-bold); font-size: 1.1rem; letter-spacing: -0.01em; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+.spatial-screen-live {
+  position: absolute; top: 20px; left: 20px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: var(--radius-full);
+  background: rgba(3,4,7,0.55); backdrop-filter: blur(8px);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0.04em; color: #fff;
+}
+.spatial-screen-live .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: live-pulse 2s ease-in-out infinite; }
+
+.spatial-screen-shadow {
+  position: absolute; left: 8%; right: 8%; bottom: -34px; height: 34px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent 72%);
+  filter: blur(6px); transform: scale(1, 0.55);
+}
+
+.spatial-panel {
+  position: absolute; z-index: 3;
+  padding: 12px 16px; border-radius: var(--radius-md);
+  background: var(--color-bg-card); border: 1px solid var(--color-border-strong);
+  backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md);
+  box-shadow: var(--shadow-floating);
+  animation: panel-float 5s ease-in-out infinite;
+}
+.spatial-panel .value { font-size: 1.05rem; font-weight: var(--fw-bold); letter-spacing: -0.01em; }
+.spatial-panel .label { font-size: var(--fs-xs); color: var(--color-text-tertiary); margin-top: 1px; }
+.spatial-panel--screens { bottom: 6%; left: -6%; animation-delay: -1.4s; }
+.spatial-panel--live { top: 6%; right: -8%; animation-delay: -3s; }
+@keyframes panel-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr; text-align: left; padding-top: clamp(24px, 8vw, 48px); }
+  .hero-stage { order: -1; margin-bottom: var(--space-6); max-width: 420px; margin-inline: auto; }
+  .hero h1 { max-width: none; }
+  .hero-metrics { justify-content: flex-start; }
+  .spatial-panel { padding: 9px 12px; }
+  .spatial-panel .value { font-size: 0.92rem; }
+}
+@media (max-width: 480px) {
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
+  .spatial-panel--screens { left: -2%; }
+  .spatial-panel--live { right: -2%; }
+}
+
+/* ---- How it works: 3 spatial steps ---- */
+.steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); position: relative; }
+@media (max-width: 860px) { .steps-row { grid-template-columns: 1fr; } }
+.step-card { position: relative; }
+.step-num { font-family: var(--font-display); font-size: 2.4rem; font-weight: var(--fw-black); color: transparent; -webkit-text-stroke: 1.5px var(--color-border-strong); margin-bottom: var(--space-4); line-height: 1; }
+.step-card h3 { font-size: var(--fs-title); margin-bottom: var(--space-2); }
+.step-arrow { display: none; }
+@media (min-width: 861px) {
+  .step-card:not(:last-child)::after {
+    content: ""; position: absolute; top: 28px; right: -34px; width: 24px; height: 1px;
+    background: linear-gradient(90deg, var(--color-border-strong), transparent);
+  }
+}
+
+/* ---- Screen network visual ---- */
+.network-stage {
+  position: relative; width: 100%; min-height: 320px; display: flex; align-items: center; justify-content: center;
+  padding: var(--space-8) 0;
+}
+.network-node {
+  position: absolute; padding: 10px 16px; border-radius: var(--radius-md);
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  backdrop-filter: var(--blur-md); font-size: var(--fs-caption); font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px;
+  animation: panel-float 6s ease-in-out infinite;
+}
+.network-node .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); }
+.network-node--center { position: relative; padding: 18px 26px; font-size: 0.95rem; background: var(--gradient-signal); color: #0a0a0d; border: none; box-shadow: var(--shadow-floating); animation: none; z-index: 2; }
+.network-node--n1 { top: 4%; left: 8%; animation-delay: -1s; }
+.network-node--n2 { top: 12%; right: 6%; animation-delay: -2.5s; }
+.network-node--n3 { bottom: 8%; left: 16%; animation-delay: -4s; }
+.network-node--n4 { bottom: 4%; right: 14%; animation-delay: -0.5s; }
+@media (max-width: 640px) {
+  .network-stage { min-height: 260px; }
+  .network-node { font-size: 0.7rem; padding: 7px 11px; }
+  .network-node--n1 { left: 2%; } .network-node--n2 { right: 2%; }
+  .network-node--n3 { left: 4%; } .network-node--n4 { right: 4%; }
+}
+
+/* ---- Split feature sections (campaign / analytics) ---- */
+.split-section { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 5vw, 64px); align-items: center; }
+@media (max-width: 900px) { .split-section { grid-template-columns: 1fr; } }
+.split-section.reverse .split-visual { order: -1; }
+@media (max-width: 900px) { .split-section .split-visual { order: -1; } }
+.split-visual { display: flex; align-items: center; justify-content: center; }
+
+.mini-analytics { width: 100%; max-width: 420px; padding: var(--space-6); }
+.mini-analytics-bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: var(--space-5); }
+.mini-analytics-bars span { flex: 1; border-radius: 6px 6px 0 0; background: var(--gradient-signal); opacity: 0.85; }
+
+.mini-campaign { width: 100%; max-width: 420px; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); }
+.mini-campaign-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-md); background: var(--color-glass); }
+
+/* ---- Final CTA ---- */
+.cta-section {
+  margin: 0 var(--pad-page) clamp(40px, 6vw, 80px);
+  padding: clamp(40px, 7vw, 80px) clamp(20px, 5vw, 60px);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(155deg, rgba(124,156,255,0.10), rgba(255,106,61,0.06));
+  border: 1px solid var(--color-border-strong);
+  text-align: center;
+  max-width: calc(var(--content-max) - 2 * var(--pad-page));
+  margin-inline: auto;
+}
+.cta-section h2 { font-size: var(--fs-display); max-width: 22ch; margin: 0 auto var(--space-6); }
+.cta-section .hero-actions { justify-content: center; }
+
+/* ==================== NAVBAR (marketing) ==================== */
+.navbar .flex { align-items: center; }
+.nav-links { display: flex; align-items: center; gap: var(--space-1); }
+.nav-mobile-toggle { display: none; }
+@media (max-width: 720px) {
+  .nav-desktop-only { display: none; }
+  .nav-mobile-toggle { display: inline-flex; }
+}
+
+/* ==================== AUTH PAGES ==================== */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+.auth-visual {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-10);
+  overflow: hidden;
+}
+.auth-visual::before {
+  content: ""; position: absolute; inset: 0;
+  background: var(--gradient-ambient);
+}
+.auth-form-side { display: flex; align-items: center; justify-content: center; padding: var(--space-6) var(--pad-page); }
+
+.auth-card { width: 100%; max-width: 400px; }
+.auth-card .brand { margin-bottom: var(--space-8); }
+.auth-title { font-size: 1.7rem; font-weight: var(--fw-bold); margin-bottom: var(--space-2); letter-spacing: -0.02em; }
+.auth-sub { color: var(--color-text-secondary); margin-bottom: var(--space-8); font-size: 0.94rem; }
+.auth-footer { margin-top: var(--space-6); font-size: 0.875rem; color: var(--color-text-secondary); }
+.auth-footer a { color: var(--color-primary); font-weight: var(--fw-semibold); }
+.auth-footer a:hover { color: var(--color-primary-hover); }
+.auth-divider { display: flex; align-items: center; gap: var(--space-3); color: var(--color-text-tertiary); font-size: var(--fs-caption); margin: var(--space-6) 0; }
+.auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--color-border-soft); }
+
+@media (max-width: 900px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-visual { display: none; }
+  .auth-form-side { padding-top: clamp(32px, 8vw, 56px); }
+}
+
+/* ==================== DASHBOARD ==================== */
+.welcome-banner {
+  background: linear-gradient(135deg, rgba(124,156,255,0.12) 0%, rgba(255,106,61,0.08) 100%);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  padding: clamp(20px, 3vw, 32px);
+  margin-bottom: var(--space-8);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); flex-wrap: wrap;
+  position: relative; overflow: hidden; box-shadow: var(--shadow-md);
+}
+.welcome-banner::after {
+  content: ""; position: absolute; top: -50%; right: -15%; width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,156,255,0.2), transparent 70%); filter: blur(40px); pointer-events: none;
+}
+.welcome-banner h1 { font-size: var(--fs-heading); margin-bottom: 4px; }
+
+.dashboard-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--space-6); align-items: start; margin-top: var(--space-6); }
+@media (max-width: 980px) { .dashboard-layout { grid-template-columns: 1fr; } }
+
+/* ==================== UPLOAD / CREATIVE STUDIO ==================== */
+.upload-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--space-8); align-items: start; }
+@media (max-width: 980px) { .upload-grid { grid-template-columns: 1fr; } }
+
+.pricing-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) 0; border-top: 1px solid var(--color-border-soft); }
+.pricing-total { font-family: var(--font-display); font-size: 1.75rem; font-weight: var(--fw-bold); color: #ffffff; }
+.duration-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.pill.selected { border-color: var(--color-primary); background: var(--color-primary-dim); color: #ffffff; font-weight: var(--fw-semibold); box-shadow: 0 0 16px rgba(255,106,61,0.3); }
+.slot-status { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-caption); }
+
+/* ==================== HISTORY ==================== */
+.history-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; margin-bottom: var(--space-5); }
+
+/* ==================== SETTINGS ==================== */
+.settings-grid { display: grid; grid-template-columns: 220px 1fr; gap: var(--space-8); align-items: start; }
+@media (max-width: 860px) { .settings-grid { grid-template-columns: 1fr; } }
+.settings-nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: var(--space-6); }
+@media (max-width: 860px) { .settings-nav { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 4px; } }
+.settings-section { margin-bottom: var(--space-8); }
+.settings-section h2 { font-size: var(--fs-title); margin-bottom: var(--space-1); }
+.settings-section .section-desc { color: var(--color-text-tertiary); font-size: 0.85rem; margin-bottom: var(--space-5); }
+
+/* ==================== ADMIN ==================== */
+.screens-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-6); }
+@media (max-width: 1080px) { .screens-layout { grid-template-columns: 1fr; } }
+.admin-tabs { display: flex; gap: var(--space-1); flex-wrap: wrap; margin-bottom: var(--space-6); padding: 4px; background: var(--color-glass); border: 1px solid var(--color-border); border-radius: var(--radius-full); width: fit-content; max-width: 100%; overflow-x: auto; }
+.admin-tab { padding: 9px 18px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: var(--fw-medium); color: var(--color-text-secondary); white-space: nowrap; }
+.admin-tab.active { background: var(--color-text); color: var(--color-bg); }
+
+@media print { .no-print { display: none; } }
+
+/* ==================== DISPLAY PLAYER ====================
+   Structure & timing preserved from the original playback engine.
+   Only the pre-connect / status glass treatment is lightly retinted. */
+.player-connect { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--space-6); }
+
+.player-shell { position: fixed; inset: 0; background: #000000; overflow: hidden; cursor: none; user-select: none; -webkit-user-select: none; }
+
+.player-media-layer {
+  position: absolute; inset: 0; opacity: 0; z-index: 1;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
+  display: flex; align-items: center; justify-content: center; background: #000000; overflow: hidden;
+}
+.player-media-layer.active { opacity: 1; z-index: 2; }
+.player-media-layer.no-anim { transition: none !important; }
+
+.player-backdrop { position: absolute; inset: -12%; z-index: 1; overflow: hidden; pointer-events: none; }
+.player-backdrop-media { width: 100%; height: 100%; object-fit: cover !important; filter: blur(50px) brightness(0.8); transform: scale(1.15); display: block; }
+.player-backdrop-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+.player-media-content { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; overflow: hidden; }
+.player-foreground-media { 
+  max-width: 100%; 
+  max-height: 100%; 
+  width: auto; 
+  height: auto; 
+  object-fit: contain; 
+  display: block; 
+  margin: auto; 
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.65)); 
+}
+
+.player-media-layer.zoom .player-foreground-media { animation: ken-burns 14s ease-in-out infinite alternate; }
+.player-media-layer.crossfade { transform: scale(1.02); filter: blur(4px); }
+.player-media-layer.crossfade.active { transform: scale(1); filter: blur(0px); }
+.player-media-layer.fade { opacity: 0; }
+.player-media-layer.fade.active { opacity: 1; }
+@keyframes ken-burns { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
+.player-transition-veil {
+  position: absolute; inset: 0; background: rgba(3,4,7,0); backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+  transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none; z-index: 10;
+}
+.player-transition-veil.on { background: rgba(3,4,7,0.35); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.player-transition-veil.glass-blur.on { background: rgba(124,156,255,0.12); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); }
+
+.player-transition-canvas { position: absolute; inset: 0; z-index: 6; opacity: 0; pointer-events: none; }
+.player-transition-canvas.on { opacity: 1; }
+
+.status-glass-orb { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-2); }
+.status-glass-orb .brand-mark { width: 52px; height: 52px; z-index: 2; }
+.status-glass-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid rgba(124,156,255,0.4);
+  background: radial-gradient(circle, rgba(255,106,61,0.15), transparent 70%);
+  animation: glass-ring-pulse 2.6s ease-in-out infinite;
+}
+.status-glass-ring.ring-2 { animation-delay: 1.3s; border-color: rgba(255,106,61,0.35); }
+@keyframes glass-ring-pulse { 0% { transform: scale(0.6); opacity: 0.9; } 70% { opacity: 0; } 100% { transform: scale(1.6); opacity: 0; } }
+
+.status-time-row { display: flex; gap: var(--space-4); margin-top: var(--space-2); flex-wrap: wrap; justify-content: center; }
+.status-time-chip { display: flex; flex-direction: column; gap: 4px; align-items: center; padding: var(--space-3) var(--space-6); border-radius: var(--radius-md); background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-soft); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm); }
+.status-time-label { font-size: var(--fs-caption); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+.status-time-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: var(--fw-semibold); }
+
+.player-header {
+  position: fixed; top: clamp(20px, 1.667vw, 44px); left: clamp(20px, 1.667vw, 44px); z-index: 30;
+  display: flex; align-items: center; gap: clamp(10px, 0.833vw, 22px);
+  background: none; border: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; padding: 0;
+  pointer-events: none; max-width: min(78vw, 900px);
+  font-family: var(--font-display); font-weight: 600; font-size: clamp(13px, 0.9375vw, 24px);
+  color: rgba(255,255,255,0.95); letter-spacing: 0.5px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.55);
+}
+.player-live-badge { display: inline-flex; align-items: center; gap: 8px; padding: 0; background: none; border: none; box-shadow: none; font: inherit; letter-spacing: inherit; color: rgba(255,255,255,0.95); flex-shrink: 0; }
+.player-live-dot { width: clamp(6px, 0.417vw, 11px); height: clamp(6px, 0.417vw, 11px); border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px 2px rgba(34,197,94,0.85); animation: live-pulse 2s ease-in-out infinite; flex-shrink: 0; }
+@keyframes live-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+.player-header-divider { width: 1px; height: 1em; background: rgba(255,255,255,0.5); flex-shrink: 0; }
+.player-header-brand { display: flex; align-items: center; min-width: 0; font: inherit; letter-spacing: inherit; color: rgba(255,255,255,0.95); white-space: nowrap; }
+.player-header-place { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font: inherit; letter-spacing: inherit; color: rgba(255,255,255,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+
+.player-sound-toggle {
+  position: fixed; left: 50%; bottom: clamp(20px, 3vw, 44px); transform: translateX(-50%); z-index: 32;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: var(--radius-full);
+  background: rgba(3,4,7,0.7); border: 1px solid rgba(255,255,255,0.22);
+  backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md);
+  color: #ffffff; font-family: var(--font-display); font-weight: var(--fw-semibold);
+  font-size: clamp(12px, 0.85vw, 15px); pointer-events: auto; cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  animation: sound-toggle-in var(--dur-slow) var(--ease-spatial);
+}
+.player-sound-toggle:hover { background: rgba(3,4,7,0.85); border-color: rgba(255,255,255,0.36); }
+@keyframes sound-toggle-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+
+.player-status { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); text-align: center; background: #000000; color: var(--color-text-secondary); }
+#status-overlay { position: fixed; inset: 0; z-index: 40; }
+.player-shell.status-active .player-header, .player-shell.status-active .player-sound-toggle, .player-shell.status-active .player-liquid-clock { opacity: 0; transition: opacity var(--dur-base) var(--ease-standard); pointer-events: none; }
+/* QR advertisement + 3D walker are DELIBERATELY excluded from the rule
+   above. Confirmed by an actual browser test (not assumed): this shared
+   status-overlay class also fires for "Waiting For Advertisements" (no
+   active campaign) - the same overlay used for "Display Closed" - and
+   was silently hiding the QR/walker via opacity in BOTH cases, which
+   directly broke QR_WALKER_DEMO_MODE's "show the QR even with no active
+   campaign" requirement (see display.js). Keeping them visible through
+   any status overlay satisfies that for both cases with one rule. */
+
+/* =========================================================
+   PREMIUM LIQUID GLASS CLOCK / WEATHER (Top-Right)
+   =========================================================
+   Sibling of .player-header/.player-qr, not inside
+   .player-media-layer, and z-index'd well above
+   .player-transition-canvas (6) and the media layers (1/2) - so it can
+   never be part of, or covered by, an IMAGE/VIDEO transition. Hidden
+   together with the header/QR only when the status overlay ("waiting for
+   ads" etc.) takes over the whole screen, same as those two already do.
+*/
+.player-liquid-clock {
+  position: fixed;
+  top: clamp(20px, 1.667vw, 44px);
+  right: clamp(20px, 1.667vw, 44px);
+  z-index: 31;
+  pointer-events: none;
+  max-width: min(46vw, 320px);
+}
+
+.player-liquid-clock-card {
+  position: relative;
+  min-width: 108px;
+  padding: 10px 18px 11px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.07));
+  border: 1px solid rgba(255, 255, 255, 0.32);
+
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+
+  overflow: hidden;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Soft liquid highlight, same technique as .player-qr-card::before */
+.player-liquid-clock-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.4), transparent 40%),
+    linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
+  pointer-events: none;
+}
+
+.player-liquid-clock-time {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.3vw, 28px);
+  font-weight: 650;
+  letter-spacing: 0.4px;
+  line-height: 1.05;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.player-liquid-clock-date {
+  position: relative;
+  z-index: 2;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: clamp(9px, 0.62vw, 13px);
+  font-weight: 550;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.player-liquid-clock-weather {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px 7px;
+  font-family: var(--font-display);
+  font-size: clamp(11px, 0.8vw, 14px);
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+.player-liquid-clock-weather[hidden] { display: none; }
+
+.player-liquid-clock-weather-icon {
+  width: clamp(16px, 1.15vw, 22px);
+  height: clamp(16px, 1.15vw, 22px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.player-liquid-clock-weather-icon svg { width: 100%; height: 100%; overflow: visible; display: block; }
+
+.player-liquid-clock-weather-temp { font-variant-numeric: tabular-nums; }
+.player-liquid-clock-weather-label { opacity: 0.85; }
+
+/* Portrait Big Displays: same top-right position, slightly tighter
+   footprint so it never grows large or crowds the advertisement on a
+   narrower canvas. clamp() above already shrinks with viewport width,
+   which is naturally smaller in portrait; this only trims the constant
+   parts (padding/radius/gap) a bit further as a safety margin. */
+@media (orientation: portrait) {
+  .player-liquid-clock { max-width: 40vw; }
+  .player-liquid-clock-card { min-width: 92px; padding: 8px 12px 9px; gap: 3px; border-radius: 16px; }
+  .player-liquid-clock-weather { gap: 3px 5px; }
+  .player-qr-card { width: 240px; }
+  .player-qr-heading { font-size: 16px; }
+}
+
+/* =========================================================
+   WEATHER ICON ANIMATIONS
+   ========================================================= */
+
+/* Clear: gentle glow pulse, no rotation/flashing */
+.wx-icon--clear .wx-sun-core { animation: wx-sun-pulse 3.4s ease-in-out infinite; transform-origin: center; }
+.wx-icon--clear .wx-sun-rays { animation: wx-sun-rays-pulse 3.4s ease-in-out infinite; transform-origin: center; }
+@keyframes wx-sun-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes wx-sun-rays-pulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+
+/* Partly cloudy: sun glow + cloud drifting slowly */
+.wx-icon--partly-cloudy .wx-sun-core { animation: wx-sun-pulse 3.4s ease-in-out infinite; transform-origin: center; }
+.wx-icon--partly-cloudy .wx-cloud { animation: wx-cloud-drift 6s ease-in-out infinite; }
+
+/* Cloudy: two-layer cloud, slow independent drift */
+.wx-icon--cloudy .wx-cloud--back { animation: wx-cloud-drift 7s ease-in-out infinite reverse; }
+.wx-icon--cloudy .wx-cloud { animation: wx-cloud-drift 5.5s ease-in-out infinite; }
+@keyframes wx-cloud-drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1.1px); } }
+
+/* Fog: translucent bands sliding past each other slowly */
+.wx-icon--fog .wx-cloud { opacity: 0.9; }
+.wx-icon--fog .wx-fog-band { animation: wx-fog-slide 3.2s ease-in-out infinite; transform-origin: center; }
+.wx-icon--fog .wx-fog-band--2 { animation-delay: 0.6s; animation-direction: reverse; }
+@keyframes wx-fog-slide { 0%, 100% { transform: translateX(-1.4px); opacity: 0.55; } 50% { transform: translateX(1.4px); opacity: 0.95; } }
+
+/* Rain: falling drops looping, cloud static */
+.wx-icon--rain .wx-drop, .wx-icon--heavy-rain .wx-drop, .wx-icon--thunderstorm .wx-drop {
+  animation: wx-rain-fall 0.9s linear infinite;
+  transform-origin: center;
+}
+.wx-icon--heavy-rain .wx-drop { animation-duration: 0.55s; }
+.wx-icon--rain .wx-drop--2, .wx-icon--heavy-rain .wx-drop--2 { animation-delay: 0.15s; }
+.wx-icon--rain .wx-drop--3, .wx-icon--heavy-rain .wx-drop--3 { animation-delay: 0.3s; }
+.wx-icon--heavy-rain .wx-drop--4 { animation-delay: 0.45s; }
+.wx-icon--thunderstorm .wx-drop--3 { animation-delay: 0.35s; }
+@keyframes wx-rain-fall { 0% { transform: translateY(-2px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(3px); opacity: 0; } }
+
+/* Thunderstorm: rain (above) + an occasional subtle lightning flash,
+   not a constant strobe - long pause between brief flashes. */
+.wx-icon--thunderstorm .wx-bolt {
+  animation: wx-lightning-flash 3.6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes wx-lightning-flash {
+  0%, 82%, 100% { opacity: 0; }
+  84% { opacity: 1; }
+  87% { opacity: 0.2; }
+  89% { opacity: 1; }
+  93% { opacity: 0; }
+}
+
+/* Snow: falling + gently drifting flakes */
+.wx-icon--snow .wx-flake { animation: wx-snow-fall 2.6s ease-in-out infinite; transform-origin: center; }
+.wx-icon--snow .wx-flake--2 { animation-delay: 0.5s; }
+.wx-icon--snow .wx-flake--3 { animation-delay: 1s; }
+@keyframes wx-snow-fall {
+  0% { transform: translate(0, -2px); opacity: 0; }
+  20% { opacity: 1; }
+  50% { transform: translate(1px, 1px); }
+  100% { transform: translate(-0.5px, 3px); opacity: 0; }
+}
+
+/* Respect reduced-motion preferences: keep icons static rather than
+   force motion on displays/environments that have opted out of it. */
+@media (prefers-reduced-motion: reduce) {
+  .player-liquid-clock-weather-icon * { animation: none !important; }
+  /* qr-video-walker.js itself also checks this and skips playing the
+     videos entirely when reduced-motion is on (see initQRVideoWalker())
+     - this rule is just a CSS-only safety net so the overlay never
+     visually animates even if script runs. */
+  .qr-video-overlay { display: none !important; }
+}
+
+/* ==================== RESPONSIVE POLISH ==================== */
+@media (max-width: 640px) {
+  .tv-frame { border-radius: var(--radius-md); }
+  .stat-value { font-size: 1.6rem; }
+  .page-header h1 { font-size: 1.35rem; }
+  .modal { padding: 0; }
+  .data-table th, .data-table td { padding: var(--space-3); font-size: 0.8125rem; }
+  .status-time-row { flex-direction: column; align-items: stretch; }
+  .section { padding-left: var(--pad-page); padding-right: var(--pad-page); }
+  .player-qr-card { width: 200px; border-radius: 12px; }
+  .player-qr-heading { font-size: 13px; }
+  .player-qr-cta { font-size: 11px; padding: 4px 9px; }
+}
+
+@media (min-width: 1600px) {
+  .main-content { max-width: 1500px; margin: 0 auto; }
+}
+
+/* ==================== SITE FOOTER ==================== */
+/*
+ * Deliberately sits one shade darker than the page body
+ * (--color-bg-sunken vs --color-bg) so it reads as a distinct closing
+ * band, the way a premium SaaS footer sets itself apart from the content
+ * above it - not another --gradient-glass card like the sections above.
+ * Every color/type/spacing choice here reuses this page's existing
+ * tokens (.eyebrow, .brand, --content-max) rather than introducing a
+ * parallel style system.
+ */
+.site-footer {
+  width: 100%;
+  background: var(--color-bg-sunken);
+  border-top: 1px solid var(--color-border-soft);
+  margin-top: var(--space-16);
+}
+
+.site-footer-inner {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 96px) var(--pad-page) var(--space-10);
+}
+
+.site-footer-top {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) repeat(4, minmax(0, 1fr));
+  gap: var(--space-10) var(--space-6);
+}
+
+.site-footer-brand .brand { margin-bottom: var(--space-6); }
+
+.site-footer-tagline {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.4vw + 1.1rem, 2.1rem);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.14;
+  color: var(--color-text);
+  margin-bottom: var(--space-5);
+}
+
+.site-footer-desc {
+  color: var(--color-text-tertiary);
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  max-width: 34ch;
+}
+
+.site-footer-col .eyebrow { margin-bottom: var(--space-4); }
+
+.site-footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.site-footer-col a {
+  display: inline-block;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-caption);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+}
+
+.site-footer-col a:hover,
+.site-footer-col a:focus-visible {
+  color: var(--color-text);
+  transform: translateX(3px);
+}
+
+.site-footer-divider {
+  height: 1px;
+  background: var(--color-border-soft);
+  margin: var(--space-10) 0 var(--space-6);
+}
+
+.site-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.site-footer-copy,
+.site-footer-status {
+  color: var(--color-text-tertiary);
+  font-size: var(--fs-xs);
+}
+
+.site-footer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Same dot treatment as .hero-badge .dot above, so the footer's live
+   status reads as the same signal language used earlier on this page
+   rather than a new visual idiom. Color/glow swap to danger if any
+   screen is offline; JS sets these inline per current data. */
+.site-footer-status .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(62,210,142,0.7);
+  flex-shrink: 0;
+}
+
+.site-footer-social {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.site-footer-social a {
+  color: var(--color-text-tertiary);
+  font-size: var(--fs-xs);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.site-footer-social a:hover,
+.site-footer-social a:focus-visible {
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 980px) {
+  .site-footer-top {
+    grid-template-columns: 1fr 1fr;
+  }
+  .site-footer-brand { grid-column: 1 / -1; margin-bottom: var(--space-4); }
+}
+
+@media (max-width: 640px) {
+  .site-footer-top {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+  .site-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .site-footer-tagline { font-size: 1.5rem; }
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Log in — Lumen</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/css/tokens.css?v20260820a">
+<link rel="stylesheet" href="assets/css/base.css?v20260820a">
+<link rel="stylesheet" href="assets/css/components.css?v20260820a">
+<link rel="stylesheet" href="assets/css/pages.css?v20260820a">
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-visual">
+    <div class="tv-frame" style="max-width: 340px; margin: 0 auto;">
+      <div class="tv-preview-wrap">
+        <div class="tv-preview" id="login-preview"></div>
+      </div>
+      <div class="tv-stand"></div>
+      <div class="tv-stand-base"></div>
+    </div>
+  </div>
+
+  <div class="auth-form-side">
+    <div class="auth-card">
+      <a class="brand" href="index.html"><span class="brand-mark"></span> Lumen</a>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Log in to manage your advertisements</p>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@business.com" required autocomplete="email">
+        </div>
+        <div class="field mt-4">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
+        <div class="flex justify-between items-center mt-4" style="margin-bottom:20px;">
+          <span></span>
+          <a href="forgot-password.html" class="text-secondary" style="font-size:.8125rem;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit">Log In</button>
+      </form>
+
+      <div class="auth-footer">Don't have an account? <a href="signup.html">Sign up</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="assets/js/pages/login.js?v20260820a"></script>
+</body>
+</html>
+
+
+
