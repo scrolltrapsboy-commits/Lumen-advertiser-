@@ -1,0 +1,121 @@
+/* ==========================================================================
+   LUMEN V3 — "Spatial Dusk" Design Tokens
+   A cool, graphite-and-ink spatial system. Neutral by default, accent light
+   used only as a rare signal (live status, primary actions, focus). Cooler
+   base, tighter radii, restrained gradients, real depth via shadow layering
+   rather than blanket glow.
+   ========================================================================== */
+:root {
+  --color-bg: #06070a;
+  --color-bg-elevated: #0a0c11;
+  --color-bg-sunken: #030405;
+  --color-bg-card: rgba(16, 18, 24, 0.55);
+  --color-glass: rgba(255, 255, 255, 0.045);
+  --color-glass-strong: rgba(255, 255, 255, 0.09);
+  --color-glass-subtle: rgba(255, 255, 255, 0.025);
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.20);
+  --color-border-soft: rgba(255, 255, 255, 0.06);
+
+  --color-primary: #FF6A3D;
+  --color-primary-hover: #FF7F58;
+  --color-primary-dim: rgba(255, 106, 61, 0.14);
+  --color-accent: #7C9CFF;
+  --color-accent-dim: rgba(124, 156, 255, 0.14);
+  --color-violet: #B48CFF;
+  --color-cyan: #4FD8E0;
+
+  --color-text: #F4F5F7;
+  --color-text-secondary: rgba(244, 245, 247, 0.66);
+  --color-text-tertiary: rgba(244, 245, 247, 0.42);
+  --color-text-muted: rgba(244, 245, 247, 0.24);
+
+  --color-success: #3ED28E;
+  --color-success-dim: rgba(62, 210, 142, 0.14);
+  --color-warning: #F5B94D;
+  --color-warning-dim: rgba(245, 185, 77, 0.14);
+  --color-danger: #FF6474;
+  --color-danger-dim: rgba(255, 100, 116, 0.14);
+
+  --gradient-primary: linear-gradient(135deg, #FF6A3D 0%, #FF8F6B 100%);
+  --gradient-signal: linear-gradient(135deg, #7C9CFF 0%, #B48CFF 55%, #FF6A3D 100%);
+  --gradient-glass: linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.015) 100%);
+  --gradient-glass-card: linear-gradient(160deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.01) 60%, rgba(124, 156, 255, 0.03) 100%);
+  --gradient-specular: linear-gradient(120deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 24%, rgba(255, 255, 255, 0) 76%, rgba(255, 255, 255, 0.12) 100%);
+  --gradient-ambient:
+    radial-gradient(ellipse 70% 45% at 18% -8%, rgba(124, 156, 255, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 15%, rgba(255, 106, 61, 0.07), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 45% 115%, rgba(180, 140, 255, 0.07), transparent 60%);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  --pad-section: clamp(20px, 5vw, 64px);
+  --pad-page: clamp(16px, 4vw, 40px);
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-full: 9999px;
+
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  --fs-hero: clamp(2.3rem, 3.6vw + 1.4rem, 4.6rem);
+  --fs-display: clamp(1.9rem, 1.6vw + 1.4rem, 3rem);
+  --fs-heading: clamp(1.4rem, 1vw + 1.1rem, 2rem);
+  --fs-title: clamp(1.1rem, 0.4vw + 1rem, 1.3rem);
+  --fs-subtitle: clamp(1rem, 0.2vw + 0.95rem, 1.1rem);
+  --fs-body: 0.9375rem;
+  --fs-caption: 0.8125rem;
+  --fs-xs: 0.72rem;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  --ease-spatial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 260ms;
+  --dur-slow: 480ms;
+
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --shadow-floating: 0 30px 70px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --shadow-signal: 0 0 40px rgba(124, 156, 255, 0.22);
+
+  --blur-sm: blur(12px);
+  --blur-md: blur(22px);
+  --blur-lg: blur(38px);
+  --blur-xl: blur(56px);
+
+  --content-max: 1320px;
+  --content-narrow: 760px;
+
+  --z-nav: 100;
+  --z-dropdown: 200;
+  --z-modal: 500;
+  --z-toast: 600;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}

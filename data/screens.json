@@ -1,0 +1,46 @@
+[
+  {
+    "id": "SCREEN001",
+    "place": "Lulu Mall Food Court",
+    "address": "NH66, Edappally, Kochi",
+    "description": "High footfall food court entrance",
+    "status": "online",
+    "activeState": "active",
+    "openTime": "08:00",
+    "closeTime": "19:00",
+    "createdAt": 1786763660854
+  },
+  {
+    "id": "SCREEN002",
+    "place": "Mall Entrance \u2013 Gate 2",
+    "address": "MG Road, Kochi",
+    "description": "Main entrance display",
+    "status": "online",
+    "activeState": "active",
+    "openTime": "08:00",
+    "closeTime": "19:00",
+    "createdAt": 1786763660854
+  },
+  {
+    "id": "SCREEN003",
+    "place": "Metro Station Concourse",
+    "address": "Kaloor Metro Station, Kochi",
+    "description": "Commuter walkway screen",
+    "status": "offline",
+    "activeState": "active",
+    "openTime": "06:00",
+    "closeTime": "23:00",
+    "createdAt": 1786763660854
+  },
+  {
+    "id": "SCREEN004",
+    "place": "City Multiplex Lobby",
+    "address": "Forum Mall, Kochi",
+    "description": "Cinema lobby waiting area",
+    "status": "online",
+    "activeState": "disabled",
+    "openTime": "10:00",
+    "closeTime": "23:00",
+    "createdAt": 1786763660854
+  }
+]

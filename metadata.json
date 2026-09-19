@@ -1,0 +1,6 @@
+{
+  "name": "Lumen Advertising",
+  "description": "Local Digital Advertising Platform connecting businesses with digital screens",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
