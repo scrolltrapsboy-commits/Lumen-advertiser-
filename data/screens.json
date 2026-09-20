@@ -8,18 +8,22 @@
     "activeState": "active",
     "openTime": "08:00",
     "closeTime": "19:00",
-    "createdAt": 1786763660854
+    "createdAt": 1786763660854,
+    "lat": 10.0276,
+    "lng": 76.308
   },
   {
     "id": "SCREEN002",
-    "place": "Mall Entrance \u2013 Gate 2",
+    "place": "Mall Entrance – Gate 2",
     "address": "MG Road, Kochi",
     "description": "Main entrance display",
     "status": "online",
     "activeState": "active",
     "openTime": "08:00",
     "closeTime": "19:00",
-    "createdAt": 1786763660854
+    "createdAt": 1786763660854,
+    "lat": 9.9312,
+    "lng": 76.2673
   },
   {
     "id": "SCREEN003",
@@ -30,7 +34,9 @@
     "activeState": "active",
     "openTime": "06:00",
     "closeTime": "23:00",
-    "createdAt": 1786763660854
+    "createdAt": 1786763660854,
+    "lat": 10.0006,
+    "lng": 76.298
   },
   {
     "id": "SCREEN004",
@@ -41,6 +47,8 @@
     "activeState": "disabled",
     "openTime": "10:00",
     "closeTime": "23:00",
-    "createdAt": 1786763660854
+    "createdAt": 1786763660854,
+    "lat": 10.0099,
+    "lng": 76.342
   }
 ]

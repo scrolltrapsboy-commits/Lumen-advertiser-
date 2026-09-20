@@ -70,17 +70,9 @@ const CARD = {
 };
 
 // One shared footprint for both source videos. The source card is rendered
-// at 42% of the live card width - reduced from an earlier 64% after the
-// composition was still reported too large (see file header/git history);
-// this is a deliberate creative reduction on top of the measured CARD
-// geometry above, not a blind arbitrary scale applied to nothing - it
-// scales the SAME already-measured video composition uniformly (man, card,
-// and QR together, never independently), so proportions, aspect ratio and
-// relative sizes between the man and the card are unchanged, only the
-// overall footprint is smaller. Flag for a follow-up tuning pass if 42%
-// still isn't the intended "natural" size - that's a visual/creative
-// judgment call the measurements alone can't fully settle.
-const SHARED_CARD_SCALE = 0.42;
+// at 64% of the live card width, which keeps the complete person/card
+// composition noticeably smaller without changing the source geometry.
+const SHARED_CARD_SCALE = 0.64;
 
 // Native QR artwork bounds measured from the stationary card in both videos.
 // The QR-only hold uses these same pixels, so its size and position are tied
@@ -92,43 +84,17 @@ const QR_ARTWORK = {
   bottom: 590 / VIDEO_H,
 };
 
-// The exact QR image supplied for this task (not library-generated, not
-// redrawn) - see public/assets/videos/qr-pause-only.png. It's a tight,
-// square crop of the original qr_banner_padded.png reference isolating
-// just the QR artwork (finder patterns, modules, and a real quiet zone)
-// with the surrounding card/border/heading/CTA button cropped away and
-// left fully transparent (verified: RGBA, alpha=0 outside the QR square).
-const QR_PAUSE_SRC = 'assets/videos/qr-pause-only.png';
 
-
-// Luma-key thresholds for the transparency pass. Re-measured directly on
-// extracted frames from the actual source videos (not guessed):
-//   - true background (multiple patches, both videos): typically
-//     max-channel 0-3, with rare single-pixel compression-noise spikes up
-//     to ~11-14 (99th percentile still only ~3).
-//   - the man's jeans (navy denim, sampled across a broad region of both
-//     legs in qr-place.mp4 frame 60): max-channel ranges from 0 (deepest
-//     shadow folds, genuinely as dark as the background) up through a
-//     median of ~7 to a mean of ~28.6, with roughly half the sampled
-//     region under 8.
-// The previous thresholds (BLACK_LOW=8, BLACK_HIGH=30) were tuned against
-// a single sampled "darkest navy denim" pixel (value 27) without checking
-// how much of the jeans actually sits BELOW that - in practice ~50% of
-// the jeans region was at or under 8 and so rendered fully transparent,
-// which is the reported "clothing goes see-through" bug.
-// This is a genuine hard case: the darkest denim shadow-fold pixels (down
-// to 0) are measurably indistinguishable in luma from the true background
-// (also 0-3) in this footage - no pure black/near-black keying threshold
-// can perfectly separate the two without new footage shot with more
-// separation between wardrobe and backdrop. Lowering BLACK_LOW/HIGH here
-// is a real, measured improvement (most of the jeans' actual value range
-// now falls inside or above the ramp instead of entirely below it), not a
-// full fix - the very darkest fold pixels will still be quite transparent,
-// and background compression-noise spikes may now show as extremely
-// faint, isolated flecks rather than being fully invisible. Both are
-// documented trade-offs, not oversights.
-const BLACK_LOW = 2;
-const BLACK_HIGH = 22;
+// Luma-key thresholds for the transparency pass. Measured directly:
+// the videos' own background sits at RGB(1,1,1)-(2,2,2); the man's
+// darkest (shadowed navy denim) pixels sampled at (10,14,27) - a
+// max-channel ("value") of 27. BLACK_LOW/HIGH are chosen to sit
+// between those two measurements: fully transparent at/under 8,
+// fully opaque at/over 30, linear ramp between (this is also what
+// naturally softens the video's own compression edges instead of
+// leaving hard jaggies).
+const BLACK_LOW = 8;
+const BLACK_HIGH = 30;
 const BLACK_RANGE = BLACK_HIGH - BLACK_LOW;
 
 // qr-pickup.mp4 is 192 frames at 24fps (8s). The card is measurably
@@ -153,35 +119,13 @@ const DURATIONS = {
  * is a close anchor rather than a mathematical guarantee on every
  * edge - documented rather than silently hand-waved.
  */
-function computeOverlayRect(qrRect) {
+function computeOverlayRect(qrRect, cardScale = SHARED_CARD_SCALE) {
   const cardWidthFrac = CARD.right - CARD.left;
-  const scale = (qrRect.width * SHARED_CARD_SCALE) / (cardWidthFrac * VIDEO_W);
+  const scale = (qrRect.width * cardScale) / (cardWidthFrac * VIDEO_W);
   const width = VIDEO_W * scale;
   const height = VIDEO_H * scale;
   const left = qrRect.right - width * CARD.right;
   const top = qrRect.bottom - height * CARD.bottom;
-  return { left, top, width, height };
-}
-
-/**
- * The paused-state QR image's rect, derived from the SAME video-canvas
- * box computeOverlayRect() returns (not an independent measurement) -
- * this is what guarantees the supplied QR image lines up pixel-for-pixel
- * with the physical QR baked into the frozen video frame: both are
- * ultimately positioned relative to the identical `box`, just narrowed
- * from the full CARD fraction down to the QR_ARTWORK sub-fraction within
- * it. No extra shrink factor is applied here - the "noticeably smaller"
- * requirement is already satisfied by (a) SHARED_CARD_SCALE shrinking the
- * whole video composition and (b) this being just the QR square instead
- * of the full card+heading+CTA, not by scaling this rect down further,
- * which would break the pixel-match with the video at the swap instants.
- */
-function computeQrOnlyRect(qrRect) {
-  const box = computeOverlayRect(qrRect);
-  const left = box.left + QR_ARTWORK.left * box.width;
-  const top = box.top + QR_ARTWORK.top * box.height;
-  const width = (QR_ARTWORK.right - QR_ARTWORK.left) * box.width;
-  const height = (QR_ARTWORK.bottom - QR_ARTWORK.top) * box.height;
   return { left, top, width, height };
 }
 
@@ -235,21 +179,27 @@ function pausableTimeout(fn, ms) {
  *   getBoundingClientRect() drives where the video overlay is
  *   positioned/sized). Defaults to #player-qr (the Big Display's own
  *   QR card) so existing call sites (display.js) don't need to change.
- *   The Upload Preview passes its own scoped QR card element instead,
- *   so the exact same walker implementation can run independently
- *   inside a small preview without colliding with the Big Display's
- *   instance (different qrCardEl, different container, entirely
- *   separate video elements/canvas/timers per call).
- * @returns {{ destroy(): void }|undefined} undefined if nothing was
- *   mounted (already mounted on this container, no qrCardEl found, or
- *   prefers-reduced-motion).
+ *   The portrait display system (portrait-display-overlay.js) passes
+ *   an invisible anchor element mirroring its visible QR card's exact
+ *   rect instead, so the walker's opacity toggles never hide the real
+ *   portrait QR.
+ * @param {{cardScale?:number}} [opts] - cardScale scales the walker's
+ *   baked card relative to qrCardEl's width. Defaults to
+ *   SHARED_CARD_SCALE (0.64 - the Big Display's slightly-smaller
+ *   composition). Pass 1 to make the baked card land exactly on the
+ *   referenced card's rect (the portrait system's choice).
+ * @returns {{ destroy(): void, relayout(): void }|undefined} undefined
+ *   if nothing was mounted (already mounted on this container, no
+ *   qrCardEl found, or prefers-reduced-motion).
  */
-export function initQRVideoWalker(container, qrCardEl) {
+export function initQRVideoWalker(container, qrCardEl, opts = {}) {
   if (!container || container.dataset.qrVideoWalkerMounted === '1') return;
   container.dataset.qrVideoWalkerMounted = '1';
 
   const qrEl = qrCardEl || document.getElementById('player-qr');
   if (!qrEl) return; // nothing to sequence around - bail out silently
+
+  const cardScale = typeof opts.cardScale === 'number' && opts.cardScale > 0 ? opts.cardScale : SHARED_CARD_SCALE;
 
   const reduceMotion =
     typeof window.matchMedia === 'function' &&
@@ -289,20 +239,6 @@ export function initQRVideoWalker(container, qrCardEl) {
   container.appendChild(canvas);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  // --- The paused-state visible layer: the exact supplied QR image
-  // (public/assets/videos/qr-pause-only.png - see QR_PAUSE_SRC), shown
-  // ONLY during the 20s freeze in place of either the full baked video
-  // frame or the site's normal library-generated #player-qr card. Sized/
-  // positioned by computeQrOnlyRect() so it lines up exactly with the
-  // physical QR in the frozen video frame - see layout() below. ---
-  const pauseQrImg = document.createElement('img');
-  pauseQrImg.src = QR_PAUSE_SRC;
-  pauseQrImg.alt = '';
-  pauseQrImg.setAttribute('aria-hidden', 'true');
-  pauseQrImg.className = 'qr-video-overlay-qr';
-  pauseQrImg.style.opacity = '0';
-  container.appendChild(pauseQrImg);
-
   function layout() {
     const qrRectVisual = qrEl.getBoundingClientRect();
     if (qrRectVisual.width === 0 || qrRectVisual.height === 0) return; // QR not laid out yet
@@ -338,17 +274,11 @@ export function initQRVideoWalker(container, qrCardEl) {
       height: qrRectVisual.height / ambientScale
     };
 
-    const box = computeOverlayRect(qrRectLocal);
+    const box = computeOverlayRect(qrRectLocal, cardScale);
     canvas.style.left = `${box.left}px`;
     canvas.style.top = `${box.top}px`;
     canvas.style.width = `${box.width}px`;
     canvas.style.height = `${box.height}px`;
-
-    const qrBox = computeQrOnlyRect(qrRectLocal);
-    pauseQrImg.style.left = `${qrBox.left}px`;
-    pauseQrImg.style.top = `${qrBox.top}px`;
-    pauseQrImg.style.width = `${qrBox.width}px`;
-    pauseQrImg.style.height = `${qrBox.height}px`;
 
   }
   layout();
@@ -356,14 +286,6 @@ export function initQRVideoWalker(container, qrCardEl) {
 
   function showCanvas(visible) {
     canvas.style.opacity = visible ? '1' : '0';
-  }
-  function showPauseQr(visible) {
-    // Deliberately an instant toggle, not a fade - see the file header:
-    // this image is pixel-position-identical to the video's own physical
-    // QR at the exact instants this is called (computeQrOnlyRect derives
-    // from the same box as the video canvas), so a fade would only add a
-    // double-exposure risk that a hard cut avoids.
-    pauseQrImg.style.opacity = visible ? '1' : '0';
   }
   function showDomQR(visible) {
     // Deliberately no transition/fade here - see the file header: the
@@ -375,7 +297,6 @@ export function initQRVideoWalker(container, qrCardEl) {
   // Both start hidden - the first thing the viewer sees is the man
   // arriving and placing the card, not the QR appearing on its own.
   showCanvas(false);
-  showPauseQr(false);
   showDomQR(false);
 
   let disposed = false;
@@ -465,36 +386,28 @@ export function initQRVideoWalker(container, qrCardEl) {
     playForward(placeVideo, statePickupFrozen20s);
   }
   function statePickupFrozen20s() {
-    // placeVideo just ended on the stationary completed card; that frame
-    // is pixel-identical to pickupVideo's own frame 0 AND to the exact
-    // region the supplied QR-only image (QR_PAUSE_SRC) is measured
-    // against (computeQrOnlyRect derives from the same box as the video
-    // canvas - see above). So the handoff here is: freeze pickupVideo at
-    // time 0 (matches the canvas's last drawn frame), then swap the
-    // visible layer from the canvas to the supplied QR-only image in the
-    // same instant - not to the full baked card/canvas frame, and not to
-    // the site's normal heading+CTA QR card (#player-qr, which stays
-    // hidden throughout - see showDomQR(false) below).
+    // placeVideo just ended on the stationary completed card; that
+    // frame is pixel-identical to pickupVideo's own frame 0. Hold
+    // pickupVideo there (paused, already preloaded) and swap the
+    // visible layer from canvas to the real DOM QR instantly.
     pickupVideo.currentTime = 0;
     pickupVideo.pause();
-    activeVideo = pickupVideo;
-    lastDrawnTime = -1; // the always-running RAF loop (see loop()/drawFrame()
-                         // below) redraws this into the canvas on its very
-                         // next tick regardless of the canvas's own
-                         // visibility, so it's already current by the time
-                         // statePickupPlaying() reveals it again - no
-                         // explicit draw needed here.
+    // Keep the placement video's final keyed frame visible. It contains the
+    // complete physical advertisement, with the man already out of frame.
+    // This is the exact visual that remains still during the 20-second hold.
     showDomQR(false);
-    showCanvas(false);
-    showPauseQr(true);
+    activeVideo = pickupVideo;
+    lastDrawnTime = -1;
+    showCanvas(true);
+    drawFrame();
     wait(DURATIONS.PICKUP_FROZEN_20S, statePickupPlaying);
   }
   function statePickupPlaying() {
-    // Swap back from the supplied QR-only image to the canvas at the
-    // exact instant pickupVideo resumes from the same frame 0 it was
-    // frozen on - still pixel-identical (computeQrOnlyRect vs the video's
-    // own physical QR), so still an instant, invisible cut.
-    showPauseQr(false);
+    // Swap back from the real DOM QR to the canvas at the exact
+    // instant pickupVideo resumes from the same frame 0 it was frozen
+    // on - still pixel-identical, so still an instant, invisible cut. The
+    // The frozen physical advertisement is replaced by the pickup video's
+    // own identical first frame before the returning man becomes visible.
     showDomQR(false);
     showCanvas(true);
     const gripTimer = wait(GRIP_TIME_S * 1000, () => {
@@ -513,7 +426,6 @@ export function initQRVideoWalker(container, qrCardEl) {
     // pickupVideo already ends on an empty frame (man fully exited),
     // so hiding the canvas here is not itself a visible change.
     showCanvas(false);
-    showPauseQr(false);
     showDomQR(false);
     wait(DURATIONS.EMPTY_10S, statePlacePlaying);
   }
@@ -532,7 +444,6 @@ export function initQRVideoWalker(container, qrCardEl) {
     placeVideo.remove();
     pickupVideo.remove();
     canvas.remove();
-    pauseQrImg.remove();
     container.dataset.qrVideoWalkerMounted = '0';
   };
   container._qrVideoWalkerCleanup = destroy;

@@ -15,7 +15,7 @@ import { slotAvailability } from '../utils/slots.js';
 import { createLiquidDropdown } from '../components/liquid-dropdown.js';
 import { mountSmallDisplayTV } from '../components/small-display-tv.js';
 import { createScreenPreview } from '../components/screen-preview.js';
-import { validateMediaFile, validateImageDuration, validatePortraitDimensions } from '../utils/validation.js';
+import { validateMediaFile, validateImageDuration } from '../utils/validation.js';
 import { calculatePrice, getPricingConfig } from '../services/pricing.service.js';
 
 async function getVideoDuration(src) {
@@ -991,7 +991,7 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
 
           <div class="field">
             <label>2. Upload file</label>
-            <div class="text-tertiary" style="font-size:.75rem;margin-bottom:8px;">Portrait media only (height must be greater than width) \u2014 landscape and square media are rejected, no admin bypass.</div>
+            <div class="text-tertiary" style="font-size:.75rem;margin-bottom:8px;">Any orientation plays \u2014 ads are presented inside the display's portrait frame (landscape media letterboxes over its own blurred fill, never stretched).</div>
             <div class="upload-drop" id="drop-zone">
               <input type="file" id="file-input" class="visually-hidden" accept="image/png,image/jpeg,image/webp">
               <svg viewBox="0 0 24 24" width="32" height="32" style="margin:0 auto 12px;color:var(--color-text-tertiary);" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4M5 16v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1197,15 +1197,11 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
 
       const url = URL.createObjectURL(file);
 
-      // PORTRAIT ONLY (height > width) - same real-dimension check as the Advertiser
-      // upload page, same rejection message, no admin bypass.
-      const portraitCheck = await validatePortraitDimensions(url, validation.type);
-      if (!portraitCheck.ok) {
-        showToast({ type: 'error', title: 'Portrait media required', message: portraitCheck.message });
-        showFileError(portraitCheck.message);
-        URL.revokeObjectURL(url);
-        return;
-      }
+      // ORIENTATION POLICY: any orientation is accepted (same rule as the
+      // advertiser flow and the server). The presentation is always
+      // portrait - contained foreground over a blurred backdrop copy of
+      // the same media, in the preview below exactly as on the real
+      // display, with no stretching.
 
       let processedFile = file;
       let processedUrl = url;
@@ -1276,23 +1272,36 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
     });
 
     // Submit
+    let uploadInFlight = false; // exactly ONE upload request per submission
     qs('#submit-advertise').addEventListener('click', async () => {
+      if (uploadInFlight) return; // double click / Enter re-entry guard
       if (!state.file || !state.screenIds) return;
+      uploadInFlight = true;
       const btn = qs('#submit-advertise');
       btn.classList.add('btn-loading');
       btn.disabled = true;
 
+      // Real byte-transfer progress (see apiUpload) - honest percentage
+      // while the body is in flight, never a fabricated value.
       const result = await AdvertisementService.upload({
         file: state.file,
         screenId: state.screenIds,
         duration: state.duration,
-        days: state.days
+        days: state.days,
+        onProgress: (info) => {
+          if (info && typeof info.percent === 'number' && info.percent < 100) {
+            btn.textContent = `Uploading\u2026 ${info.percent}%`;
+          } else {
+            btn.textContent = 'Processing\u2026';
+          }
+        }
       });
 
       if (!result.ok) {
         showToast({ type: 'error', title: 'Upload failed', message: result.message || 'Please try again.' });
         btn.classList.remove('btn-loading');
-        btn.disabled = false;
+        uploadInFlight = false;
+        updateSubmitState();
         return;
       }
 

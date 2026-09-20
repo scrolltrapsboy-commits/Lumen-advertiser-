@@ -699,6 +699,21 @@ function buildSlide(phase) {
               vertexIndex
             ][1];
 
+          /*
+           * UV ORIENTATION (fixes the flipped-transition frame):
+           *
+           * The vertex shader maps world +Y to screen UP (finalY = 1 -
+           * pixelY/vh*2), while a WebGL texture uploaded with
+           * UNPACK_FLIP_Y_WEBGL = false has v=0 at the FIRST image row,
+           * i.e. the image's TOP. The previous convention (v = 1 -
+           * (y+H/2)/H) therefore put image-top at world-top but sampled
+           * it with v=1 - the texture's BOTTOM row: every transition
+           * frame rendered vertically flipped relative to the DOM
+           * images before/after it. Sampling with v directly
+           * proportional to (y + H/2) / H aligns image-top (v=0) with
+           * world-top, matching both the DOM layer shown before the
+           * transition and the one revealed after it.
+           */
           const u =
             (
               x +
@@ -707,14 +722,11 @@ function buildSlide(phase) {
             WIDTH;
 
           const v =
-            1 -
             (
-              (
-                y +
-                HEIGHT * 0.5
-              ) /
-              HEIGHT
-            );
+              y +
+              HEIGHT * 0.5
+            ) /
+            HEIGHT;
 
           writeVertex(
             x,

@@ -5,8 +5,6 @@ const screenService = require('../services/screen.service');
 const settingsService = require('../services/settings.service');
 const pricingService = require('../services/pricing.service');
 const { validateFileSize, validateImageDuration, mediaTypeFromMime } = require('../services/validation.service');
-const { getMediaDimensions } = require('../services/media-dimensions.service');
-const { isPortrait, PORTRAIT_REJECTION_MESSAGE } = require('../services/portrait.util');
 const { slotAvailability } = require('../services/slots.service');
 const { isWithinOperatingHours, nextOpeningLabel, currentTimeLabel } = require('../services/date.util');
 const { UPLOAD_DIR } = require('../config/multer');
@@ -46,23 +44,13 @@ async function upload(req, res, next) {
       return res.status(400).json(sizeCheck);
     }
 
-    // Portrait-only validation - enforced here from the file's own real header
-    // bytes (never trusting filename/extension/MIME/any client-supplied
-    // width or height), for BOTH the advertiser and admin upload flows
-    // (this is the one shared upload() handler both routes call - see
-    // routes/ad.routes.js - so there is no separate "admin" code path
-    // that could bypass this).
-    let dimensions;
-    try {
-      dimensions = getMediaDimensions(file.path, file.mimetype);
-    } catch (err) {
-      safeUnlink(file.path);
-      return res.status(400).json({ ok: false, message: `Could not read this file's real dimensions to verify it is portrait (${err.message}). Please try a different export of the file.` });
-    }
-    if (!isPortrait(dimensions.width, dimensions.height)) {
-      safeUnlink(file.path);
-      return res.status(400).json({ ok: false, message: PORTRAIT_REJECTION_MESSAGE });
-    }
+    // ORIENTATION POLICY: media of ANY orientation is accepted here. The
+    // advertisement PRESENTATION is always portrait - every playback
+    // surface (Big Display, Small Display, Upload/Admin preview) frames
+    // the media inside the portrait canvas with the same no-distortion
+    // treatment (object-fit: contain foreground over a blurred, scaled
+    // copy of the same media as backdrop), so landscape uploads letterbox
+    // over their own blurred fill instead of being rejected or stretched.
 
     const { screenId, days } = req.body;
     let duration = Number(req.body.duration);

@@ -9,7 +9,7 @@ import { mountSmallDisplayTV } from '../components/small-display-tv.js';
 import { createScreenPreview } from '../components/screen-preview.js';
 import { showToast } from '../components/toast.js';
 import { qs, qsa, formatCurrency, escapeHTML } from '../core/helpers.js';
-import { validateMediaFile, validateImageDuration, validatePortraitDimensions } from '../utils/validation.js';
+import { validateMediaFile, validateImageDuration } from '../utils/validation.js';
 import { slotAvailability } from '../utils/slots.js';
 import { formatTime12h } from '../utils/date.js';
 import { watchLive } from '../core/live.js';
@@ -109,7 +109,7 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
 
           <div class="field">
             <label>2. Upload file</label>
-            <div class="text-tertiary" style="font-size:.75rem;margin-bottom:8px;">Portrait media only (height must be greater than width) \u2014 landscape and square media are rejected.</div>
+            <div class="text-tertiary" style="font-size:.75rem;margin-bottom:8px;">Any orientation plays \u2014 your ad is presented inside the display's portrait frame (landscape media letterboxes over its own blurred fill, never stretched).</div>
             <div class="upload-drop" id="drop-zone">
               <input type="file" id="file-input" class="visually-hidden" accept="image/png,image/jpeg,image/webp">
               <svg viewBox="0 0 24 24" width="32" height="32" style="margin:0 auto 12px;color:var(--color-text-tertiary);" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4M5 16v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -342,18 +342,11 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
 
     const url = URL.createObjectURL(file);
 
-    // PORTRAIT ONLY (height > width), enforced from the file's REAL rendered
-    // dimensions (naturalWidth/Height or videoWidth/Height - see
-    // validatePortraitDimensions()), never filename/extension/MIME.
-    // Checked before compression/duration-probing below so a rejected
-    // file never gets processed further.
-    const portraitCheck = await validatePortraitDimensions(url, validation.type);
-    if (!portraitCheck.ok) {
-      showToast({ type: 'error', title: 'Portrait media required', message: portraitCheck.message });
-      showFileError(portraitCheck.message);
-      URL.revokeObjectURL(url);
-      return;
-    }
+    // ORIENTATION POLICY: any orientation is accepted. The presentation
+    // is always portrait - the shared display fitting (contained
+    // foreground over a blurred backdrop copy of the same media) applies
+    // in the preview below exactly as it will on the real display, with
+    // no stretching and no re-encoding of the file.
 
     let processedFile = file;
     let processedUrl = url;
@@ -658,14 +651,29 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
   });
 
   // Submit
+  let uploadInFlight = false; // exactly ONE upload request per submission
   qs('#submit-upload').addEventListener('click', async () => {
+    if (uploadInFlight) return; // double click / Enter re-entry guard
     if (!state.file || !state.screenId || !state.businessName) return;
+    uploadInFlight = true;
     const btn = qs('#submit-upload');
     const statusEl = qs('#verification-status');
     btn.classList.add('btn-loading');
     btn.disabled = true;
     statusEl.style.display = '';
-    statusEl.innerHTML = `<div class="glass-card" style="padding:12px 16px;font-size:.8125rem;">Verifying advertisement\u2026</div>`;
+
+    // Honest progress only: real byte-transfer percentage from the XHR
+    // upload while it runs (see apiUpload), then an explicitly
+    // indeterminate server-processing state - never a fabricated percent.
+    const formatBytes = (n) => n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.round(n / 1024)}KB`;
+    const renderProgress = (info) => {
+      if (info && typeof info.percent === 'number' && info.percent < 100) {
+        statusEl.innerHTML = `<div class="glass-card" style="padding:12px 16px;font-size:.8125rem;">Uploading ${state.type === 'video' ? 'video' : 'image'}\u2026 ${info.percent}%<div class="text-tertiary" style="font-size:.75rem;margin-top:4px;">${formatBytes(info.loaded)} of ${formatBytes(info.total)}</div></div>`;
+      } else {
+        statusEl.innerHTML = `<div class="glass-card" style="padding:12px 16px;font-size:.8125rem;">${state.type === 'video' ? 'Uploading video\u2026 this may take a little longer for videos.' : 'Verifying advertisement\u2026'}</div>`;
+      }
+    };
+    renderProgress(null);
 
     const result = await AdvertisementService.upload({
       file: state.file,
@@ -673,13 +681,26 @@ async function compressImage(file, maxDimension = 1920, quality = 0.85) {
       duration: state.duration,
       days: state.days,
       businessName: state.businessName,
-      businessId: state.businessId
+      businessId: state.businessId,
+      onProgress: renderProgress
     });
 
     if (!result.ok) {
       btn.classList.remove('btn-loading');
-      btn.disabled = false;
+      uploadInFlight = false;
       updateSubmitState();
+
+      // A client-side timeout/network failure is reported honestly - the
+      // upload did NOT succeed, whatever the server may or may not have
+      // received. The button is re-enabled so the user can retry.
+      if (result.code === 'UPLOAD_TIMEOUT' || result.code === 'UPLOAD_NETWORK_ERROR' || result.code === 'UPLOAD_ABORTED') {
+        statusEl.innerHTML = `
+          <div class="glass-card" style="padding:12px 16px;border-color:var(--color-danger);">
+            <div style="font-weight:600;color:var(--color-danger);">\u2715 Upload failed</div>
+            <div class="text-tertiary mt-4" style="font-size:.8125rem;">${escapeHTML(result.message || 'Please try again.')}</div>
+          </div>`;
+        return;
+      }
 
       // Distinguish the verification-specific failure states (see
       // ad.controller.js upload()) from a generic upload error, per the

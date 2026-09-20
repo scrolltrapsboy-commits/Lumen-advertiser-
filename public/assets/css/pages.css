@@ -66,13 +66,6 @@
 .qr-video-overlay-qr {
   display: block;
   background: transparent;
-  /* The element itself is already sized/positioned in px by
-     qr-video-walker.js's layout()/computeQrOnlyRect() to exactly match
-     the physical QR in the frozen video frame. object-fit: contain is a
-     safety net (keeps the square, undistorted image intact even if a
-     future layout tweak ever makes the box not-quite-square) rather than
-     the thing doing the sizing. */
-  object-fit: contain;
 }
 .qr-video-overlay-source {
   position: fixed;
@@ -235,12 +228,15 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: start;
+  align-items: center;
   gap: clamp(24px, 5vw, 64px);
   width: 100%;
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: clamp(24px, 4vw, 56px) var(--pad-page) clamp(48px, 7vw, 88px);
+  /* Hero begins close beneath the header - only a small intentional
+     gap, not a large empty band (the copy stays the primary focus and
+     the TV sits naturally beside it). */
+  padding: clamp(10px, 1.6vw, 26px) var(--pad-page) clamp(36px, 5vw, 64px);
   min-height: 0;
 }
 
@@ -284,69 +280,23 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1400px;
+  min-height: 0;
 }
+
+/* The hero TV is the SAME Small Display chassis every other page uses
+   (mountSmallDisplayTV + the shared portrait display system), at a
+   medium responsive size - prominent beside the copy, never a giant
+   monitor dominating the hero. Portrait 9:16 is locked by the chassis's
+   own aspect-ratio; only the width responds to the viewport. */
+.hero-stage .small-display-tv-mount { width: clamp(240px, 24vw, 380px); }
+.hero-stage .small-display-tv { max-width: 380px; }
 
 .hero-orb { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: -1; }
 .orb-1 { width: 46vw; max-width: 480px; height: 46vw; max-height: 480px; background: var(--color-accent); opacity: 0.16; top: -8%; left: -8%; }
 .orb-2 { width: 40vw; max-width: 420px; height: 40vw; max-height: 420px; background: var(--color-primary); opacity: 0.12; bottom: -10%; right: -6%; }
-
-.spatial-screen {
-  position: relative;
-  width: min(72%, 380px);
-  transform: rotateY(-14deg) rotateX(6deg);
-  transform-style: preserve-3d;
-  animation: screen-float 6s ease-in-out infinite;
-}
-@keyframes screen-float {
-  0%, 100% { transform: rotateY(-14deg) rotateX(6deg) translateY(0); }
-  50% { transform: rotateY(-11deg) rotateX(4deg) translateY(-14px); }
-}
-
-.spatial-screen-panel {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(155deg, #16181e 0%, #0a0b0f 100%);
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: var(--shadow-floating);
-  overflow: hidden;
-  padding: 10px;
-}
-.spatial-screen-panel::after {
-  content: ""; position: absolute; inset: 0;
-  background: var(--gradient-specular); mix-blend-mode: overlay; pointer-events: none;
-}
-.spatial-screen-canvas {
-  width: 100%; height: 100%; border-radius: calc(var(--radius-lg) - 8px);
-  background: var(--gradient-signal);
-  position: relative; overflow: hidden;
-  display: flex; align-items: flex-end; padding: var(--space-4);
-}
-.spatial-screen-canvas::before {
-  content: ""; position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 55%);
-}
-.spatial-screen-adname { position: relative; color: #fff; font-weight: var(--fw-bold); font-size: 1.1rem; letter-spacing: -0.01em; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-
-.spatial-screen-live {
-  position: absolute; top: 20px; left: 20px; z-index: 3;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 11px; border-radius: var(--radius-full);
-  background: rgba(3,4,7,0.55); backdrop-filter: blur(8px);
-  font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0.04em; color: #fff;
-}
-.spatial-screen-live .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: live-pulse 2s ease-in-out infinite; }
-
-.spatial-screen-shadow {
-  position: absolute; left: 8%; right: 8%; bottom: -34px; height: 34px;
-  background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent 72%);
-  filter: blur(6px); transform: scale(1, 0.55);
-}
 
 .spatial-panel {
   position: absolute; z-index: 3;
@@ -358,23 +308,27 @@
 }
 .spatial-panel .value { font-size: 1.05rem; font-weight: var(--fw-bold); letter-spacing: -0.01em; }
 .spatial-panel .label { font-size: var(--fs-xs); color: var(--color-text-tertiary); margin-top: 1px; }
-.spatial-panel--screens { bottom: 6%; left: -6%; animation-delay: -1.4s; }
-.spatial-panel--live { top: 6%; right: -8%; animation-delay: -3s; }
+.spatial-panel--screens { bottom: 4%; left: -4%; animation-delay: -1.4s; }
+.spatial-panel--live { top: 4%; right: -5%; animation-delay: -3s; }
 @keyframes panel-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 @media (max-width: 980px) {
-  .hero { grid-template-columns: 1fr; text-align: left; padding-top: clamp(24px, 8vw, 48px); }
-  .hero-stage { order: -1; margin-bottom: var(--space-6); max-width: 420px; margin-inline: auto; }
+  /* Mobile stacks: copy -> buttons -> metrics -> TV (naturally, via
+     source order once .hero-stage stops pulling itself to the front). */
+  .hero { grid-template-columns: 1fr; text-align: left; padding-top: clamp(16px, 5vw, 32px); }
+  .hero-stage { margin-top: var(--space-8); }
+  .hero-stage .small-display-tv-mount { width: min(100%, 340px); }
   .hero h1 { max-width: none; }
   .hero-metrics { justify-content: flex-start; }
   .spatial-panel { padding: 9px 12px; }
   .spatial-panel .value { font-size: 0.92rem; }
+  .spatial-panel--screens { left: -1%; bottom: 2%; }
+  .spatial-panel--live { right: -1%; top: 2%; }
 }
 @media (max-width: 480px) {
   .hero-actions { flex-direction: column; align-items: stretch; }
   .hero-actions .btn { width: 100%; }
-  .spatial-panel--screens { left: -2%; }
-  .spatial-panel--live { right: -2%; }
+  .hero-stage .small-display-tv-mount { width: min(100%, 300px); }
 }
 
 /* ---- How it works: 3 spatial steps ---- */
@@ -518,16 +472,24 @@
    block. */
 .upload-form-col { order: 1; }
 .upload-tv-col { order: 2; }
-.upload-tv-col { display: flex; align-items: center; justify-content: center; min-height: 620px; }
+.upload-tv-col { display: flex; align-items: center; justify-content: center; }
 .upload-tv-card { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+/* Desktop: a LARGE, centered, inspectable portrait TV - not a tiny
+   thumbnail. Bigger than the marketing pages' decorative TVs, capped so
+   the column never overflows; centered purely via the flex column above
+   (no margins). */
+.upload-tv-col .small-display-tv-mount { width: min(100%, 470px); }
+.upload-tv-col .small-display-tv { max-width: 470px; }
 @media (max-width: 980px) {
   .upload-grid { grid-template-columns: 1fr; }
   /* Mobile: single column, TV at the very top, form below - achieved
-     purely by swapping `order` values, not by moving markup. */
+     purely by swapping `order` values, not by moving markup. The TV
+     stays portrait and centered, sized to fit a 390px viewport with
+     page padding, with no horizontal scroll. */
   .upload-tv-col { order: -1; }
   .upload-form-col { order: 0; }
-  .upload-tv-col { min-height: 0; }
-  .upload-tv-mount { width: min(100%, 340px); }
+  .upload-tv-col .small-display-tv-mount { width: min(100%, 360px); }
+  .upload-tv-col .small-display-tv { max-width: 360px; }
 }
 
 .pricing-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) 0; border-top: 1px solid var(--color-border-soft); }
@@ -598,28 +560,53 @@
 .player-backdrop-media { width: 100%; height: 100%; object-fit: cover !important; filter: blur(50px) brightness(0.8); transform: scale(1.15); display: block; }
 .player-backdrop-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
-.player-media-content { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; overflow: hidden; }
-.player-foreground-media { 
-  max-width: 100%; 
-  max-height: 100%; 
-  width: auto; 
-  height: auto; 
-  object-fit: contain; 
-  display: block; 
-  margin: auto; 
-  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.65)); 
+/* PORTRAIT PRESENTATION COLUMN: the advertisement's sharp surface is
+   ALWAYS a centered 9:16 portrait frame, on every display shape - this
+   is the physical portrait signage canvas. Landscape uploads letterbox
+   (object-fit: contain) inside the column over their own blurred
+   full-bleed backdrop; portrait uploads fill it naturally. Nothing is
+   ever stretched, rotated, or cropped. The transition engines composite
+   within #bas-canvas-container, which shares this exact geometry (see
+   the .player-transition-canvas rule below), so the WebGL handoff frame
+   matches the revealed DOM frame pixel-for-pixel. On portrait screens
+   the column naturally fills the whole canvas. */
+.player-media-content {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  aspect-ratio: 9 / 16;
+  max-width: 100%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.player-foreground-media {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: auto;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.65));
 }
 
-/* Small-display preview (screen-preview.js): the stage reuses
-   .player-shell verbatim (see its own comment above) but this is never
-   the actual full-page display, so the mouse cursor should behave
-   normally over it. */
-.player-shell.screen-preview-stage { cursor: default; }
+/* Small-display preview: the stage reuses the shared portrait display
+   system (see .portrait-display-stage / .pd-* above); the only
+   page-level leftover is the status veil's default text sizing, which
+   the stage-scoped rule overrides in stage pixels.
+   Deliberately NO transition of any kind applies inside a preview - the
+   Big Display's transition engines are never mounted here. */
 .screen-preview-status {
   position: absolute; inset: 0; z-index: 10000; display: none;
-  align-items: center; justify-content: center; text-align: center; padding: 8%;
+  align-items: center; justify-content: center; text-align: center;
   background: rgba(6, 7, 9, 0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  color: rgba(255, 255, 255, 0.85); font-size: 32px; line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .player-media-layer.zoom .player-foreground-media { animation: ken-burns 14s ease-in-out infinite alternate; }
@@ -637,7 +624,24 @@
 .player-transition-veil.on { background: rgba(3,4,7,0.35); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .player-transition-veil.glass-blur.on { background: rgba(124,156,255,0.12); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); }
 
-.player-transition-canvas { position: absolute; inset: 0; z-index: 6; opacity: 0; pointer-events: none; }
+.player-transition-canvas {
+  /* Same centered 9:16 portrait column as .player-media-content (see the
+     portrait presentation rule above) so the particle/turbulent engines
+     composite inside exactly the region the DOM advertisement occupies -
+     the handoff between the WebGL frame and the revealed DOM layer is
+     seamless on every display shape. */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  aspect-ratio: 9 / 16;
+  max-width: 100%;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+}
 .player-transition-canvas.on { opacity: 1; }
 
 .status-glass-orb { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-2); }
@@ -771,14 +775,18 @@
 }
 
 .player-liquid-clock-card--detailed {
-  width: clamp(520px, 42vw, 760px);
-  min-height: 240px;
-  padding: 24px 28px 26px;
+  /* COMPACT panel: the user's call on the real TV was "still too big" -
+     this sizes the whole card to roughly a fifth of a 1920 canvas
+     (~560px max) with the whole information hierarchy intact and
+     readable. Height is content-driven. Every clamp() scales smoothly
+     between phone previews and large TVs. */
+  width: clamp(400px, 28vw, 560px);
+  padding: clamp(6px, 0.55vw, 10px) clamp(10px, 0.75vw, 14px);
   flex-direction: row;
   align-items: stretch;
-  gap: 28px;
+  gap: clamp(6px, 0.6vw, 10px);
   text-align: left;
-  border-radius: 28px;
+  border-radius: 18px;
   background: linear-gradient(135deg, rgba(16, 28, 45, 0.86), rgba(14, 20, 32, 0.68));
   border-color: rgba(190, 224, 255, 0.34);
   box-shadow:
@@ -804,10 +812,11 @@
 }
 .player-liquid-clock-kicker { display: none; }
 .player-liquid-clock-card--detailed .player-liquid-clock-kicker { display: block; }
-.player-liquid-clock-card--detailed .player-liquid-clock-main { flex: 0 0 43%; justify-content: center; }
-.player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(42px, 4.2vw, 72px); line-height: 0.98; letter-spacing: 0; }
-.player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(14px, 1.05vw, 19px); margin-top: 12px; }
-.player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(13px, 1vw, 18px); letter-spacing: 0.3px; }
+.player-liquid-clock-card--detailed .player-liquid-clock-main { flex: 0 0 36%; justify-content: center; }
+/* Clock column: prominent but compact. */
+.player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(24px, 1.8vw, 36px); line-height: 0.98; letter-spacing: 0; }
+.player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(10px, 0.72vw, 13px); margin-top: 3px; }
+.player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(9px, 0.65vw, 11px); letter-spacing: 0.3px; }
 
 .player-liquid-clock-date {
   position: relative;
@@ -861,16 +870,18 @@
 .player-liquid-clock-card--detailed .player-liquid-clock-metrics { display: block; }
 .player-liquid-clock-card--detailed .player-liquid-clock-main { display: flex; }
 .player-liquid-clock-card--detailed .player-liquid-clock-weather { flex: 1; min-width: 0; }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 5px; justify-content: center; }
-.player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(14px, 1.05vw, 18px); color: rgba(225, 240, 255, 0.86); }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 12px; flex-wrap: wrap; align-items: center; }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(64px, 6vw, 104px); height: clamp(64px, 6vw, 104px); }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(38px, 3.6vw, 64px); font-weight: 700; line-height: 0.95; }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-label { flex-basis: 100%; margin-left: clamp(76px, 7vw, 116px); margin-top: -8px; font-size: clamp(16px, 1.35vw, 23px); }
-.player-liquid-clock-card--detailed .player-liquid-clock-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-top: 16px; margin-top: 8px; border-top: 1px solid rgba(196, 225, 255, 0.2); font-size: clamp(12px, 0.9vw, 16px); color: rgba(231, 243, 255, 0.76); }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 1px; justify-content: center; }
+/* Location: compact premium label. */
+.player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(10px, 0.78vw, 13px); color: rgba(225, 240, 255, 0.86); }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 7px; flex-wrap: wrap; align-items: center; }
+/* Weather artwork: clearly visible animation, balanced with the temp. */
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(38px, 2.9vw, 54px); height: clamp(38px, 2.9vw, 54px); }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(21px, 1.7vw, 33px); font-weight: 700; line-height: 0.95; }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-label { flex-basis: 100%; margin-left: clamp(44px, 3.3vw, 62px); margin-top: -2px; font-size: clamp(11px, 0.82vw, 14px); }
+.player-liquid-clock-card--detailed .player-liquid-clock-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding-top: 5px; margin-top: 2px; border-top: 1px solid rgba(196, 225, 255, 0.2); font-size: clamp(9px, 0.7vw, 12px); color: rgba(231, 243, 255, 0.76); }
 .player-liquid-clock-card--detailed .player-liquid-clock-metrics span { white-space: normal; line-height: 1.2; }
 .player-liquid-clock-wind-visual { display: none; }
-.player-liquid-clock-card--detailed .player-liquid-clock-wind-visual { display: inline-flex; flex-direction: column; gap: 5px; margin-left: auto; width: clamp(44px, 4vw, 72px); opacity: 0.78; }
+.player-liquid-clock-card--detailed .player-liquid-clock-wind-visual { display: inline-flex; flex-direction: column; gap: 2px; margin-left: auto; width: clamp(26px, 2vw, 38px); opacity: 0.78; }
 .player-liquid-clock-wind-visual i { display: block; height: 2px; border-radius: 2px; background: #8bd7ff; animation: wx-wind-streak 1.8s ease-in-out infinite; }
 .player-liquid-clock-wind-visual i:nth-child(1) { width: 100%; }
 .player-liquid-clock-wind-visual i:nth-child(2) { width: 72%; animation-delay: -0.4s; }
@@ -882,35 +893,324 @@
   left: clamp(20px, 1.667cqw, 44px);
   bottom: clamp(18px, 1.667cqw, 44px);
   z-index: 31;
-  max-width: min(34cqw, 360px);
-  color: rgba(255, 255, 255, 0.72);
+  /* Substantially larger than the old clamp(10px, 0.7cqw, 14px): readable
+     from a real viewing distance while staying a minimal line of text -
+     no card, no pill, no quotation-mark icon (per the quote spec). The
+     max-width keeps the quote clear of the QR card on the right. */
+  max-width: min(42cqw, 560px);
+  color: rgba(255, 255, 255, 0.82);
   font-family: var(--font-display);
-  font-size: clamp(10px, 0.7cqw, 14px);
-  line-height: 1.25;
-  letter-spacing: 0.1px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+  font-size: clamp(16px, 1.5cqw, 26px);
+  font-weight: 550;
+  line-height: 1.35;
+  letter-spacing: 0.2px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65), 0 1px 3px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
-/* Portrait Big Displays: same top-right position, slightly tighter
-   footprint so it never grows large or crowds the advertisement on a
-   narrower canvas. clamp() above already shrinks with viewport width,
-   which is naturally smaller in portrait; this only trims the constant
-   parts (padding/radius/gap) a bit further as a safety margin. */
+/* Portrait Big Displays: the panel must not inherit its landscape
+   footprint on a narrow canvas. It keeps the same row architecture when
+   there is room, and compacts hard on phones - every clamp()'d size
+   above already scales with viewport width; these overrides only trim
+   the constants further so the ADVERTISEMENT stays dominant on a
+   390px-wide screen while clock/temp/condition remain clearly legible
+   (per the spec: rebalance the layout, never shrink text into
+   unreadability). */
 @media (orientation: portrait) {
-  .player-liquid-clock { max-width: 88vw; }
-  .player-liquid-clock-card { width: min(88vw, 360px); padding: 9px 10px 10px; gap: 9px; border-radius: 16px; }
-  .player-liquid-clock-main { flex-basis: 39%; }
-  .player-liquid-clock-weather { gap: 3px 5px; }
-  .player-liquid-clock-card--detailed { width: min(88vw, 520px); min-height: 0; padding: 18px; flex-direction: column; gap: 14px; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-main { flex-basis: auto; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(38px, 10vw, 58px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 9px; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: 68px; height: 68px; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-label { margin-left: 0; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-metrics { padding-top: 12px; margin-top: 4px; }
+  .player-liquid-clock { max-width: 92vw; top: clamp(64px, 10vw, 110px); }
+  .player-liquid-clock-card { width: min(92vw, 340px); padding: 7px 8px 8px; gap: 7px; border-radius: 13px; }
+  .player-liquid-clock-main { flex-basis: 36%; }
+  .player-liquid-clock-weather { gap: 3px 4px; }
+  .player-liquid-clock-card--detailed { width: min(88vw, 420px); padding: 7px 9px; gap: 6px; border-radius: 13px; }
+  .player-liquid-clock-card--detailed .player-liquid-clock-main { flex-basis: 35%; }
+  .player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(20px, 5.4vw, 27px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(9px, 2.2vw, 11px); margin-top: 3px; }
+  .player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(8px, 2vw, 10px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(9px, 2.2vw, 11px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 6px; }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(32px, 8vw, 41px); height: clamp(32px, 8vw, 41px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(17px, 4.4vw, 23px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-label { margin-left: clamp(38px, 9.2vw, 47px); font-size: clamp(9px, 2.4vw, 12px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-metrics { gap: 4px; padding-top: 4px; margin-top: 1px; font-size: clamp(8px, 2vw, 10px); }
+  /* Quote on portrait: lifted ABOVE the QR card's zone (QR sits
+     bottom-right, ~240px wide + its offset) so the two can never overlap
+     on a narrow canvas, and sized to stay readable at phone width. */
+  .player-daily-quote { bottom: 180px; max-width: 86vw; font-size: clamp(13px, 3.2vw, 19px); }
   .player-qr-card { width: 240px; }
   .player-qr-heading { font-size: 16px; }
+}
+
+/* =========================================================
+   PORTRAIT DISPLAY SYSTEM ("Small Display")
+   =========================================================
+   The ONE shared portrait composition of the Lumen display
+   system, mounted by portrait-display-overlay.js and used by
+   screen-preview.js (Upload/Admin preview) and network-preview.js
+   (landing/login/signup/dashboard TVs).
+
+   COORDINATE SYSTEM: every rule below is written in absolute
+   pixels of a fixed 1080x1920 logical stage. The consuming JS
+   scales the WHOLE stage with one uniform transform to whatever
+   size the physical TV chassis renders at, so these values are
+   design constants - they must never respond to viewport media
+   queries, container queries, or cqw/vw units (the stage's own
+   width is 1080px regardless of the device). That is what keeps
+   clock/weather/QR/branding proportions identical on a phone
+   preview and on a real portrait TV, with no per-element scaling.
+
+   Structure (top to bottom, over the advertisement):
+     topbar   LIVE | LUMEN DIGITAL ADS [+ screen chip]
+     clock    greeting / large time / date
+     place    screen location pill
+     weather  animated icon + temperature + condition, then
+              rain / humidity / wind metrics
+     spacer   the advertisement shows through
+     quote    daily quote (minimal, no card)
+     qr       real scannable QR card, bottom-right
+     walker   QR video man overlay (qr-video-walker.js)
+*/
+.portrait-display-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  transform-origin: top left;
+  background: #000000;
+  overflow: hidden;
+  /* The stage carries a transform (set inline by JS) - which makes it
+     the containing block for the fixed-position .qr-video-overlay, so
+     the walker is scoped to this stage, exactly like the Big Display's
+     own page scope. */
+  isolation: isolate;
+}
+.pd-media { position: absolute; inset: 0; }
+
+.pd-root {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 54px 40px;
+  pointer-events: none;
+  font-family: var(--font-display);
+  color: #ffffff;
+}
+
+/* Legibility scrims: soft dark gradients so the top information stack
+   and the bottom quote/QR stay readable over any advertisement, without
+   boxing the content into heavy cards. */
+.pd-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.pd-scrim--top {
+  top: 0;
+  height: 780px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.42) 46%, rgba(0, 0, 0, 0) 100%);
+}
+.pd-scrim--bottom {
+  bottom: 0;
+  height: 700px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.34) 52%, rgba(0, 0, 0, 0) 100%);
+}
+/* Content children paint above the scrims (which are absolutely
+   positioned earlier siblings). The scrims themselves and the fixed
+   .pd-walker are exempt - the walker's position comes from the shared
+   .qr-video-overlay rule and must never be overridden. */
+.pd-root > *:not(.pd-scrim):not(.pd-walker) { position: relative; }
+
+.pd-topbar {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-weight: 600;
+  font-size: 34px;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+/* The .player-live-badge / .player-live-dot / .player-header-divider
+   rules are shared verbatim with the Big Display header; the badge
+   inherits this rule's font-size. */
+.pd-brand { letter-spacing: inherit; white-space: nowrap; }
+.pd-screen-chip {
+  margin-left: auto;
+  padding: 6px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  color: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+}
+.pd-screen-chip[hidden] { display: none; }
+
+.pd-clock {
+  margin-top: 56px;
+  text-align: center;
+}
+.pd-greeting {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.pd-time {
+  margin-top: 6px;
+  font-size: 148px;
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.6);
+}
+.pd-date {
+  margin-top: 8px;
+  font-size: 38px;
+  font-weight: 550;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.pd-place {
+  margin-top: 28px;
+  font-size: 36px;
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pd-place[hidden] { display: none; }
+
+.pd-weather {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 26px 46px;
+  border-radius: 30px;
+  background: rgba(10, 16, 28, 0.42);
+  border: 1px solid rgba(190, 224, 255, 0.26);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  max-width: 100%;
+}
+.pd-weather-main {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+.pd-weather-icon {
+  width: 124px;
+  height: 124px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.pd-weather-icon svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.pd-weather-temp {
+  font-size: 76px;
+  font-weight: 700;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+}
+.pd-weather-cond {
+  font-size: 38px;
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pd-metrics {
+  display: flex;
+  align-items: center;
+  font-size: 34px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+.pd-metric { white-space: nowrap; }
+.pd-metric + .pd-metric {
+  margin-left: 30px;
+  padding-left: 30px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pd-spacer { flex: 1 1 0; }
+
+.pd-quote {
+  margin-bottom: 28px;
+  max-width: 78%;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.74);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.pd-qr {
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 2;
+}
+/* Stage-locked QR size: larger than the Big Display's landscape card
+   relative to the canvas so it stays genuinely scannable at portrait-TV
+   scale. Higher specificity than the generic .player-qr-card rules
+   (including their viewport media-query variants), because those must
+   never apply inside the 1080px stage. */
+.portrait-display-stage .pd-qr .player-qr-card { width: 480px; border-radius: 20px; }
+.portrait-display-stage .pd-qr .player-qr-heading { font-size: 34px; }
+.portrait-display-stage .pd-qr .player-qr-cta { font-size: 22px; padding: 8px 16px; }
+.portrait-display-stage .pd-qr .player-qr-info { padding: 12px 22px; gap: 12px; }
+/* Invisible twin of the card above: a child of .pd-qr (whose in-flow
+   box the card sits flush against), so its rect always matches the
+   card's exactly. The walker sequences around THIS element, so its
+   opacity toggles never hide the real QR (the card stays permanently
+   visible; the walker's baked card - cardScale 1 - lands exactly on top
+   of it while the man carries it). */
+.pd-qr-anchor {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  aspect-ratio: 2.15;
+  opacity: 0;
+  pointer-events: none;
+}
+.pd-walker { z-index: 3; }
+
+/* Status veil (loading / no screen selected / no ads) - sized in stage
+   pixels like everything else on the stage. */
+.portrait-display-stage .screen-preview-status {
+  font-size: 44px;
+  line-height: 1.45;
+  padding: 10%;
 }
 
 /* =========================================================

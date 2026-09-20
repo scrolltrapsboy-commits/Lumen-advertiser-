@@ -13,8 +13,14 @@ export const AdvertisementService = {
     const all = await this.listAll();
     return all.filter(ad => ad.screenId === screenId);
   },
-  /** Uploads a new advertisement. `file` is a File object; screenId/duration/days describe the campaign. businessName/businessId are advertiser-flow-only (see upload.js) - omitted entirely for Admin uploads, which never go through business verification. */
-  async upload({ file, screenId, duration, days, businessName, businessId }) {
+  /** Uploads a new advertisement. `file` is a File object; screenId/duration/days describe the campaign. businessName/businessId are advertiser-flow-only (see upload.js) - omitted entirely for Admin uploads, which never go through business verification.
+   *
+   * `onProgress` (optional) receives REAL byte-transfer progress from the
+   * XHR upload (see apiUpload) - never a fabricated percentage - so the
+   * UI can show an honest "Uploading video… 42%" while a large file is
+   * in flight. The promise still resolves only on the server's actual
+   * response. */
+  async upload({ file, screenId, duration, days, businessName, businessId, onProgress }) {
     const formData = new FormData();
     formData.append('file', file);
     // FormData values are coerced to strings. Appending an array directly
@@ -29,13 +35,15 @@ export const AdvertisementService = {
     if (businessName) formData.append('businessName', businessName);
     if (businessId) formData.append('businessId', businessId);
     try {
-      const res = await apiUpload('/api/upload', formData);
+      const res = await apiUpload('/api/upload', formData, { onProgress });
       return { ok: true, ad: res.ad };
     } catch (err) {
       // Preserve the backend's structured error (code, selectedBusiness,
       // confidence - see ad.controller.js upload()) so the caller can show
       // the right verification-failure state instead of a generic message.
-      return { ok: false, message: err.message, code: err.body && err.body.code, body: err.body };
+      // Client-side timeout/network aborts carry their own honest codes
+      // (UPLOAD_TIMEOUT / UPLOAD_NETWORK_ERROR - see core/api.js).
+      return { ok: false, message: err.message, code: err.code || (err.body && err.body.code), body: err.body };
     }
   },
   async setStatus(id, status) {

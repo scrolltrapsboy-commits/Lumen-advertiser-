@@ -7,6 +7,7 @@ import { runTurbulentDissolve } from '../components/turbulent-dissolve.js';
 import { initQRVideoWalker } from '../components/qr-video-walker.js';
 import { generateQRSvgMarkup } from '../components/qr-code.js';
 import { mountClockWeatherOverlay } from '../components/clock-weather-overlay.js';
+import { dailyQuote } from '../utils/quote.js';
 
 /* =====================================================================
  * QR ADVERTISEMENT / QR VIDEO-WALKER CONFIG
@@ -679,16 +680,9 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
     dividerEl.style.display = place ? '' : 'none';
   }
 
-  function dailyQuote() {
-    const quotes = [
-      'Start where you are, use what you have.',
-      'Small steps become meaningful distance.',
-      'Make today useful.',
-      'Clarity creates momentum.'
-    ];
-    const day = Math.floor(Date.now() / 86400000);
-    return quotes[((day % quotes.length) + quotes.length) % quotes.length];
-  }
+  // dailyQuote() now lives in utils/quote.js - the ONE shared daily-quote
+  // system, also used by the portrait display system, so both displays
+  // show the same quote for the same calendar day.
   /**
    * Builds the media DOM for an ad and returns it immediately (synchronous
    * except for the browser's own decode/network work, which continues in
@@ -928,6 +922,31 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
     let stopWatch = null;
     let currentSingleAdId = null;
     let lastAdMediaType = null; // tracks what's currently showing, for transition routing
+    let transitionRunning = false; // ONE transition at a time - see the multi-ad pipeline
+
+    /**
+     * Resolves once the given <video> has at least one decodable frame
+     * (readyState >= 2), or false on error/timeout. Used so a transition
+     * never begins against a black/empty incoming video frame - the
+     * engine would otherwise texture-upload nothing for the handoff.
+     */
+    function waitForVideoReady(video, timeoutMs = 8000) {
+      if (!video) return Promise.resolve(false);
+      if (video.readyState >= 2) return Promise.resolve(true);
+      return new Promise((resolve) => {
+        const finish = (ok) => {
+          clearTimeout(timer);
+          video.removeEventListener('loadeddata', onReady);
+          video.removeEventListener('error', onError);
+          resolve(ok);
+        };
+        const onReady = () => finish(true);
+        const onError = () => finish(false);
+        const timer = setTimeout(() => finish(video.readyState >= 2), timeoutMs);
+        video.addEventListener('loadeddata', onReady);
+        video.addEventListener('error', onError);
+      });
+    }
 
     mountPlayerShell(config, screen);
     let lastPlace = screen ? screen.place : '';
@@ -1082,6 +1101,20 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
       if (!nextLayer) return;
 
       /*
+       * TRANSITION LOCK: one engine at a time. If a previous transition
+       * is somehow still running when this frame fires (timer race -
+       * e.g. an ad's `ended` event arriving mid-transition), retry
+       * shortly instead of stacking a second engine onto the same two
+       * layers, which is what produces overlapping/duplicated frames.
+       */
+      if (transitionRunning) {
+        clearTimeout(mediaTimer);
+        mediaTimer = setTimeout(async () => { await refreshFeed(); showFrame(); }, 1500);
+        return;
+      }
+      transitionRunning = true;
+
+      /*
        * ============================================================
        * BIG DISPLAY TRANSITION PIPELINE
        * ============================================================
@@ -1110,6 +1143,17 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
         prepared = prepareMediaElement(ad);
 
         /*
+         * VIDEO READINESS: never begin the transition until the incoming
+         * video has at least one decodable frame - the engines composite
+         * the incoming media from a texture upload, and uploading a
+         * not-yet-decoded video hands the final DOM layer off from a
+         * blank/black transition frame.
+         */
+        if (prepared.type === 'video' && prepared.mainVideo) {
+          await waitForVideoReady(prepared.mainVideo);
+        }
+
+        /*
          * ----------------------------------------------------------
          * 2. Mount incoming media in the inactive layer
          * ----------------------------------------------------------
@@ -1120,6 +1164,15 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
           'player-media-layer lumen-player-page';
 
         nextLayer.appendChild(prepared.fragment);
+
+        /*
+         * Clean baseline: strip any geometry/filter a previous state may
+         * have left on this layer so the engine - and the final handoff -
+         * always start from the normal display state.
+         */
+        nextLayer.style.transform = '';
+        nextLayer.style.filter = '';
+        nextLayer.style.transition = '';
 
         /*
          * Incoming layer MUST NOT be visible before transition.
@@ -1237,12 +1290,28 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
           }
         );
 
+        /*
+         * ----------------------------------------------------------
+         * FINAL HANDOFF NORMALIZATION
+         * ----------------------------------------------------------
+         * The engine has fully finished; the incoming layer becomes the
+         * visible ad NOW. Strip any geometry/filter a transition path
+         * could have left behind so the final frame is exactly a
+         * freshly-displayed advertisement - never flipped, offset,
+         * scaled or ghosting over the outgoing one.
+         */
+        nextLayer.style.transform = '';
+        nextLayer.style.filter = '';
+        nextLayer.style.transition = '';
+        nextLayer.style.objectFit = '';
+        nextLayer.style.objectPosition = '';
+
       } catch (err) {
 
         /*
-         * ----------------------------------------------------------
+         * ------------------------------------------------------------
          * TRANSITION ERROR
-         * ----------------------------------------------------------
+         * ------------------------------------------------------------
          *
          * IMPORTANT:
          * Do NOT reveal the incoming ad here.
@@ -1262,6 +1331,9 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
             error: err
           }
         );
+
+        // Release the lock so the outer retry can run another transition.
+        transitionRunning = false;
 
         /*
          * Stop any video that belongs to the failed incoming layer.
@@ -1419,6 +1491,9 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
           Math.max(3000, durationMs)
         );
       }
+
+      // Success path complete - release the transition lock.
+      transitionRunning = false;
     }
 
     // Live socket/poll watcher for screen or ad changes

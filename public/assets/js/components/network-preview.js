@@ -1,6 +1,7 @@
 import { ScreenService } from '../services/screen.service.js';
 import { apiFetch } from '../core/api.js';
 import { formatScreenLabel } from '../core/helpers.js';
+import { mountPortraitDisplayOverlay } from './portrait-display-overlay.js';
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -21,6 +22,9 @@ function fetchScreenAds(screenId) {
 // layer falls away.
 const FALL_DURATION_MS = 700;
 const FALL_EASING = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+
+const STAGE_W = 1080;
+const STAGE_H = 1920;
 
 let smallFallStylesInjected = false;
 
@@ -65,7 +69,10 @@ function ensureSmallFallStyles() {
  * Plays the fall transition: the OUTER layer (outgoing) falls away and
  * reveals the incoming layer already sitting underneath. The transform is
  * applied to this outer layer only - never to the img/video itself - so
- * aspect ratio inside is never touched by the fall.
+ * aspect ratio inside is never touched by the fall. The fall applies ONLY
+ * to advertisement media: the persistent portrait overlay (clock, weather,
+ * quote, QR, walker, branding) lives in a sibling layer above these pages
+ * and never moves.
  */
 async function runSmallFallTransition(outgoing, incoming) {
   if (!outgoing || !incoming) {
@@ -137,8 +144,16 @@ export function mountNetworkPreview(container, opts = {}) {
   container.style.position = 'relative';
   container.style.width = '100%';
   container.style.height = '100%';
-  container.style.perspective = '1200px';
   container.style.overflow = 'hidden';
+
+  // The whole Small Display composition lives on ONE 1080x1920 logical
+  // stage scaled uniformly to whatever CSS size the TV chassis renders
+  // at (see .portrait-display-stage in pages.css) - media fall pages
+  // below, the shared persistent-information overlay above.
+  const stage = document.createElement('div');
+  stage.className = 'portrait-display-stage';
+  stage.style.perspective = '1200px';
+  container.appendChild(stage);
 
   const layerA = document.createElement('div');
   const layerB = document.createElement('div');
@@ -148,17 +163,54 @@ export function mountNetworkPreview(container, opts = {}) {
   });
   layerA.style.zIndex = '2';
   layerB.style.zIndex = '1';
-  container.appendChild(layerB);
-  container.appendChild(layerA);
+  stage.appendChild(layerB);
+  stage.appendChild(layerA);
   let active = layerA;
   let idle = layerB;
 
+  let overlay = null;
+  function rescale() {
+    const rect = container.getBoundingClientRect();
+    if (!rect.width) return;
+    stage.style.transform = `scale(${rect.width / STAGE_W})`;
+    if (overlay) overlay.relayout();
+  }
+  const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(rescale) : null;
+  if (resizeObserver) resizeObserver.observe(container);
+  window.addEventListener('resize', rescale);
+  rescale();
+
+  overlay = mountPortraitDisplayOverlay(stage);
+  overlay.relayout();
+
+  // Weather for whichever screen the showcase is currently walking
+  // through - the screen's own configured location, refreshed on the
+  // server's cadence. ONE poll timer at a time; never geolocation (a
+  // viewer's own position would misrepresent the screen).
+  let weatherScreenId = null;
+  let weatherTimer = null;
+  async function showWeatherFor(screenId) {
+    const token = screenId;
+    try {
+      const data = await apiFetch(`/api/weather/${encodeURIComponent(screenId)}`);
+      if (destroyed || token !== weatherScreenId) return;
+      overlay.setWeather(data && data.ok && data.weather ? data.weather : null);
+      if (typeof data.refreshMs === 'number' && data.refreshMs > 0) {
+        if (weatherTimer) clearInterval(weatherTimer);
+        weatherTimer = setInterval(() => showWeatherFor(screenId), data.refreshMs);
+      }
+    } catch (err) {
+      if (!destroyed && token === weatherScreenId) overlay.setWeather(null);
+    }
+  }
+
   function buildLumenFragment() {
     const el = document.createElement('div');
-    el.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,156,255,0.16), transparent 65%), #030405;text-align:center;padding:8%;';
+    el.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,156,255,0.16), transparent 65%), #030405;text-align:center;padding:8%;';
     el.innerHTML = `
-      <div style="width:22%;aspect-ratio:1;max-width:40px;border-radius:22%;background:linear-gradient(135deg,#7C9CFF 0%,#B48CFF 55%,#FF6A3D 100%);box-shadow:0 0 30px rgba(124,156,255,0.35);"></div>
-      <div style="font-family:Inter,-apple-system,sans-serif;font-weight:800;font-size:clamp(11px,7%,20px);letter-spacing:0.08em;color:#fff;">LUMEN</div>
+      <div style="width:150px;aspect-ratio:1;border-radius:22%;background:linear-gradient(135deg,#7C9CFF 0%,#B48CFF 55%,#FF6A3D 100%);box-shadow:0 0 60px rgba(124,156,255,0.35);"></div>
+      <div style="font-family:Inter,-apple-system,sans-serif;font-weight:800;font-size:72px;letter-spacing:0.08em;color:#fff;">LUMEN</div>
+      <div style="font-family:Inter,-apple-system,sans-serif;font-weight:500;font-size:34px;letter-spacing:0.14em;color:rgba(255,255,255,0.55);text-transform:uppercase;">Digital Ads</div>
     `;
     el.dataset.kind = 'lumen';
     return el;
@@ -170,7 +222,7 @@ export function mountNetworkPreview(container, opts = {}) {
 
     // Background layer for letterboxing/pillarboxing - blurred and scaled.
     const bg = document.createElement('div');
-    bg.style.cssText = 'position:absolute;inset:-20%;background-size:cover;background-position:center;filter:blur(30px) brightness(0.4);transform:scale(1.2);z-index:0;';
+    bg.style.cssText = 'position:absolute;inset:-20%;background-size:cover;background-position:center;filter:blur(60px) brightness(0.4);transform:scale(1.2);z-index:0;';
 
     // Foreground layer - always object-fit:contain so portrait/landscape
     // media never gets stretched, regardless of the container's shape.
@@ -257,6 +309,9 @@ export function mountNetworkPreview(container, opts = {}) {
 
       if (!screens.length) {
         if (labelEl) labelEl.textContent = 'Lumen Network';
+        weatherScreenId = null;
+        overlay.setPlace('');
+        overlay.setScreenLabel('');
         if (firstEntryEver) {
           idle.appendChild(buildLumenFragment());
           idle.style.zIndex = '2'; active.style.zIndex = '1';
@@ -273,6 +328,13 @@ export function mountNetworkPreview(container, opts = {}) {
       if (currentScreenIndex >= screens.length) currentScreenIndex = 0;
       const screen = screens[currentScreenIndex];
       if (labelEl) labelEl.textContent = screen.place || screen.id;
+
+      // The persistent overlay switches to THIS screen's information in
+      // place - never rebuilt, so the clock/QR/walker never restart.
+      weatherScreenId = screen.id;
+      overlay.setPlace(screen.place || '');
+      overlay.setScreenLabel(screen.id);
+      showWeatherFor(screen.id);
 
       const ads = (prefetched && prefetched.screenId === screen.id)
         ? await prefetched.promise
@@ -335,6 +397,10 @@ export function mountNetworkPreview(container, opts = {}) {
   return {
     destroy() {
       destroyed = true;
+      if (weatherTimer) clearInterval(weatherTimer);
+      overlay.destroy();
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('resize', rescale);
       container.querySelectorAll('video').forEach((v) => { v.pause(); v.removeAttribute('src'); });
     }
   };

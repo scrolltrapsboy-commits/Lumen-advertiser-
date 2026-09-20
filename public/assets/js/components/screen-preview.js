@@ -1,59 +1,52 @@
 import { apiFetch } from '../core/api.js';
-import { generateQRSvgMarkup } from './qr-code.js';
-import { mountClockWeatherOverlay } from './clock-weather-overlay.js';
-import { initQRVideoWalker } from './qr-video-walker.js';
+import { mountPortraitDisplayOverlay } from './portrait-display-overlay.js';
 
 /**
  * ScreenPreviewController - the "Upload Preview" system (kept
  * deliberately separate from the Big Display's own live playback
  * system in display.js, which is untouched by this file).
  *
- * Given a screen ID, it fetches the EXACT SAME endpoints the actual Big
- * Display uses (GET /api/display/:screenId for the screen/ads/site
- * config, GET /api/weather/:screenId for weather) and renders the real
- * current advertisement, clock, date, location, weather, QR, and QR
- * walker into the `screenEl` returned by mountSmallDisplayTV() - never
+ * Given a screen ID, it fetches the EXACT SAME endpoints the actual
+ * displays use (GET /api/display/:screenId for the screen/ads/site
+ * config, GET /api/weather/:screenId for weather) and renders the
+ * real current advertisement underneath the shared portrait display
+ * overlay (portrait-display-overlay.js - the same persistent
+ * information system as the Big Display: LIVE badge, Lumen branding,
+ * screen label, clock, date, greeting, location, animated weather,
+ * daily quote, real scannable QR, QR video walker). Never
  * fake/hardcoded example data.
- *
- * Reuses the Big Display's own CSS classes/markup fragments verbatim
- * (.player-header, .player-qr, and the shared clock-weather-overlay.js
- * / qr-video-walker.js modules also used by display.js) at the Big
- * Display's own real logical resolution (1080x1920), then scales that
- * whole stage down with a single CSS transform to fit whatever size the
- * TV's screen area actually renders at. That's what keeps clock/QR/text
- * proportions IDENTICAL to the real display instead of a separately
- * hand-tuned "small" version that could drift out of sync with it, and
- * it can never stretch/distort/crop since it's one uniform scale.
  *
  * Deliberately, explicitly NOT the same as the Big Display's own ad
  * playback:
  *  - NO automatic ad rotation/playlist and NO transition of any kind
  *    (no fall, dissolve, particle, slide, flip, zoom) between ads or
  *    when a pending file is selected - the currently-relevant media is
- *    just shown, instantly, full stop. The Big Display's own particle-
- *    transition/turbulent-dissolve system (display.js) is untouched and
- *    is not reused or referenced here.
- *  - The QR walker (qr-video-walker.js) IS mounted here, exactly once
- *    per preview instance, and keeps running independently of screen or
- *    pending-media changes - see setScreen()/setPendingMedia() below.
+ *    just shown, instantly, full stop. Only the weather icon and the
+ *    QR walker keep their own independent animations. The Big
+ *    Display's particle-transition/turbulent-dissolve systems are
+ *    untouched and are not reused or referenced here.
+ *  - NO QR video walker: the preview's job is to represent the screen's
+ *    information and how the uploaded ad will sit in the portrait frame;
+ *    the place/pickup walker is a physical-display behavior, not part of
+ *    that (and the mounting pages pass their own overlay opts). The QR
+ *    CARD itself still renders - real and scannable, exactly as on the
+ *    display.
  *
  * Also disclosed, not silently skipped:
  *  - Browser-geolocation weather fallback is intentionally NOT
  *    triggered from here: that fallback exists in display.js because
- *    the Big Display's browser physically sits at the screen's real
- *    location, so ITS geolocation is a reasonable stand-in for a
- *    screen with no configured coordinates. An admin/advertiser
- *    previewing that same screen from their own browser is very likely
- *    somewhere else entirely, so their geolocation would misrepresent
- *    the screen's real location rather than approximate it. If a
- *    screen has no configured lat/lng, this preview just shows no
- *    weather block - exactly like the Big Display does before its own
- *    geolocation fallback resolves.
- *  - There is no reverse-geocoding pipeline anywhere in this codebase
- *    (only `screen.place`, an admin-entered label) - this preview shows
- *    `screen.place`, the exact same value and field the Big Display
- *    itself renders as the location, rather than inventing a new
- *    geocoding integration this app doesn't otherwise have.
+ *    a real display's browser physically sits at the screen's
+ *    location. An admin/advertiser previewing that same screen from
+ *    their own browser is very likely somewhere else entirely, so
+ *    their geolocation would misrepresent the screen's real location.
+ *    The selected screen's configured location is the source of truth
+ *    whenever it exists; if a screen has no configured lat/lng the
+ *    weather block just shows placeholders - and no permission prompt
+ *    is ever shown from a preview.
+ *  - There is no reverse-geocoding pipeline for previews (only
+ *    `screen.place`, an admin-entered label, plus the weather
+ *    service's own optional locationName) - this preview shows
+ *    `screen.place`, the same value the Big Display renders.
  */
 
 const STAGE_W = 1080;
@@ -106,53 +99,29 @@ function buildAdContent(ad) {
 
 function buildMessageContent(message) {
   const el = document.createElement('div');
-  el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.55);font-size:34px;text-align:center;padding:8%;';
+  el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.55);font-size:44px;line-height:1.4;text-align:center;padding:8%;';
   el.textContent = message;
   return el;
 }
 
 export function createScreenPreview(screenEl) {
   screenEl.innerHTML = `
-    <div class="player-shell screen-preview-stage" id="sp-stage">
-      <div class="player-media-layer active" id="sp-layer"></div>
-      <div class="player-header" id="sp-header">
-        <span class="player-live-badge"><span class="player-live-dot"></span>LIVE</span>
-        <span class="player-header-divider" id="sp-place-divider" style="display:none;"></span>
-        <span class="player-header-place" id="sp-place" style="display:none;"></span>
-      </div>
-      <div class="player-liquid-clock" id="sp-clock"></div>
-      <div class="player-qr" id="sp-qr" style="display:none;">
-        <div class="player-qr-card">
-          <div class="player-qr-code" id="sp-qr-code"></div>
-          <div class="player-qr-info">
-            <p class="player-qr-heading">Learn more<br>about us.</p>
-            <div class="player-qr-cta"><span class="player-qr-cta-arrow" aria-hidden="true">&#8592;</span><span>scan here</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="qr-video-overlay" id="sp-qr-walker" aria-hidden="true"></div>
-      <div class="screen-preview-status" id="sp-status"></div>
+    <div class="portrait-display-stage screen-preview-stage">
+      <div class="pd-media"></div>
     </div>`;
 
-  const stage = screenEl.querySelector('#sp-stage');
-  stage.style.width = `${STAGE_W}px`;
-  stage.style.height = `${STAGE_H}px`;
-  stage.style.transformOrigin = 'top left';
+  const stage = screenEl.querySelector('.screen-preview-stage');
+  const layer = stage.querySelector('.pd-media');
+  const statusEl = document.createElement('div');
+  statusEl.className = 'screen-preview-status';
+  statusEl.style.display = 'none';
+  stage.appendChild(statusEl);
 
-  const statusEl = screenEl.querySelector('#sp-status');
-  const layer = screenEl.querySelector('#sp-layer');
-  const qrEl = screenEl.querySelector('#sp-qr');
-  const qrWalkerContainer = screenEl.querySelector('#sp-qr-walker');
-  const clockOverlay = mountClockWeatherOverlay(screenEl.querySelector('#sp-clock'));
+  let overlay = null;
 
-  let currentScreenId = null;
-  let ads = [];
-  let weatherTimer = null;
-  let pendingMedia = null; // { url, type } | null - see setPendingMedia()
-  let destroyed = false;
-  let requestToken = 0; // guards against a slow fetch resolving after setScreen() moved on
-  let walkerHandle = null; // mounted at most ONCE, ever - see setScreen() below
-
+  // ONE uniform scale for the whole 1080x1920 composition - the TV can
+  // render at any CSS size and every proportion stays locked (see the
+  // stage rules in pages.css).
   function rescale() {
     const rect = screenEl.getBoundingClientRect();
     if (!rect.width) return;
@@ -162,15 +131,23 @@ export function createScreenPreview(screenEl) {
     // only on an actual browser window resize - call its exposed
     // relayout() directly. (Not a dispatched 'resize' event: layout()
     // is already subscribed to 'resize' itself, so re-dispatching one
-    // from here would call it a second time on every real resize too,
-    // and risks recursing if anything else ever reacts to 'resize' by
-    // resizing something in turn.)
-    if (walkerHandle) walkerHandle.relayout();
+    // from here would call it a second time on every real resize too.)
+    if (overlay) overlay.relayout();
   }
-  rescale();
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(rescale) : null;
   if (resizeObserver) resizeObserver.observe(screenEl);
   window.addEventListener('resize', rescale);
+  rescale();
+
+  overlay = mountPortraitDisplayOverlay(stage, { walker: false });
+  overlay.relayout();
+
+  let currentScreenId = null;
+  let ads = [];
+  let weatherTimer = null;
+  let pendingMedia = null; // { url, type } | null - see setPendingMedia()
+  let destroyed = false;
+  let requestToken = 0; // guards against a slow fetch resolving after setScreen() moved on
 
   function showStatus(message) {
     statusEl.textContent = message;
@@ -186,7 +163,8 @@ export function createScreenPreview(screenEl) {
    * no fade/dissolve/fall/slide/flip/zoom of any kind, by design (see
    * file header). Old <video> elements are explicitly stopped before
    * being discarded so a replaced ad doesn't keep decoding in the
-   * background.
+   * background. The persistent overlay is a sibling of the media layer
+   * and is never touched by this.
    */
   function showInstantly(buildContentFn) {
     layer.querySelectorAll('video').forEach((v) => {
@@ -214,45 +192,16 @@ export function createScreenPreview(screenEl) {
     try {
       const data = await apiFetch(`/api/weather/${encodeURIComponent(screenId)}`);
       if (destroyed || screenId !== currentScreenId) return;
-      if (data && data.ok && data.weather) {
-        clockOverlay.renderWeather(data.weather);
-        if (typeof data.refreshMs === 'number' && data.refreshMs > 0) {
-          if (weatherTimer) clearInterval(weatherTimer);
-          weatherTimer = setInterval(() => pollWeatherOnce(screenId), data.refreshMs);
-        }
-      } else {
-        // WEATHER_NOT_CONFIGURED or any other non-ok response: no
-        // geolocation fallback here (see file header) - just no weather
-        // block, same as the Big Display before its own fallback runs.
-        clockOverlay.renderWeather(null);
+      // Values update in place inside the permanently-reserved weather
+      // block, so a late/refreshed reading never moves the layout.
+      overlay.setWeather(data && data.ok && data.weather ? data.weather : null);
+      if (data && typeof data.refreshMs === 'number' && data.refreshMs > 0) {
+        if (weatherTimer) clearInterval(weatherTimer);
+        weatherTimer = setInterval(() => pollWeatherOnce(screenId), data.refreshMs);
       }
     } catch (err) {
       if (destroyed || screenId !== currentScreenId) return;
-      clockOverlay.renderWeather(null);
-    }
-  }
-
-  function renderQR(siteUrl) {
-    const qrCodeEl = screenEl.querySelector('#sp-qr-code');
-    const destination = siteUrl || window.location.origin;
-    try {
-      qrCodeEl.innerHTML = generateQRSvgMarkup(destination);
-      qrEl.style.display = '';
-    } catch (err) {
-      qrEl.style.display = 'none';
-    }
-
-    // Mount the QR walker exactly ONCE, ever, the first time the QR
-    // card is actually visible/sized (its layout() needs a real rect to
-    // measure) - never remounted on later screen changes or file
-    // changes, so there is only ever one walker, one canvas, one pair
-    // of decode-only <video> elements, one RAF loop for this preview
-    // (see qr-video-walker.js's own file header for how it stays
-    // genuinely transparent and how its timeline/state machine works -
-    // this is the exact same implementation the Big Display uses, not
-    // a second one).
-    if (!walkerHandle && qrEl.style.display !== 'none') {
-      walkerHandle = initQRVideoWalker(qrWalkerContainer, qrEl) || null;
+      overlay.setWeather(null);
     }
   }
 
@@ -265,9 +214,9 @@ export function createScreenPreview(screenEl) {
     hideStatus();
 
     if (!screenId) {
-      qrEl.style.display = 'none';
-      screenEl.querySelector('#sp-place').style.display = 'none';
-      screenEl.querySelector('#sp-place-divider').style.display = 'none';
+      overlay.setPlace('');
+      overlay.setScreenLabel('');
+      overlay.setQrDestination(null);
       showInstantly(() => buildMessageContent('Select a display screen to preview it here.'));
       return;
     }
@@ -291,18 +240,12 @@ export function createScreenPreview(screenEl) {
     const { screen, config } = feed;
     ads = Array.isArray(feed.ads) ? feed.ads : [];
 
-    const placeEl = screenEl.querySelector('#sp-place');
-    const placeDividerEl = screenEl.querySelector('#sp-place-divider');
-    if (screen.place) {
-      placeEl.textContent = `\u{1F4CD} ${screen.place}`;
-      placeEl.style.display = '';
-      placeDividerEl.style.display = '';
-    } else {
-      placeEl.style.display = 'none';
-      placeDividerEl.style.display = 'none';
-    }
-
-    renderQR(config && config.siteUrl);
+    // Screen-specific persistent information: name chip, location, QR
+    // destination and weather all switch to the SELECTED screen's real
+    // data, in place.
+    overlay.setScreenLabel(screen.id);
+    overlay.setPlace(screen.place || '');
+    overlay.setQrDestination(config && config.siteUrl);
     renderCurrentMedia();
     pollWeatherOnce(screenId);
   }
@@ -310,9 +253,9 @@ export function createScreenPreview(screenEl) {
   /**
    * Shows a not-yet-uploaded file inside the TV instead of the screen's
    * current ad - instantly, with no transition (see file header). Pass
-   * null to go back to showing the screen's current ad. The QR walker
-   * is never touched by this - it keeps running independently, exactly
-   * as specified.
+   * null to go back to showing the screen's current ad. The persistent
+   * overlay (clock/weather/quote/QR/walker) is never touched by this -
+   * it keeps running independently, exactly as specified.
    */
   function setPendingMedia(media) {
     if (destroyed) return;
@@ -323,8 +266,7 @@ export function createScreenPreview(screenEl) {
   function destroy() {
     destroyed = true;
     if (weatherTimer) clearInterval(weatherTimer);
-    clockOverlay.destroy();
-    if (walkerHandle) walkerHandle.destroy();
+    overlay.destroy();
     if (resizeObserver) resizeObserver.disconnect();
     window.removeEventListener('resize', rescale);
     layer.querySelectorAll('video').forEach((v) => {

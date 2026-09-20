@@ -103,8 +103,20 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Lumen server running on port ${PORT}`);
 });
+
+// Large video advertisements take minutes to transfer. Node's default
+// request timeout is 300s, which can cut a legitimate slow upload short
+// while the client is still sending. This window must always be >= the
+// client's own upload budget (UPLOAD_TIMEOUT_MS in
+// public/assets/js/core/api.js) so the server is never the side that
+// gives up first. Configurable per deployment via REQUEST_TIMEOUT_MS.
+const REQUEST_TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS) || 10 * 60 * 1000;
+server.requestTimeout = REQUEST_TIMEOUT_MS;
+// Headers arrive at the start of the upload; only a generous TOTAL
+// window matters, but keep the header window comfortably inside it.
+server.headersTimeout = Math.min(REQUEST_TIMEOUT_MS, 120 * 1000);
 
 module.exports = app;
