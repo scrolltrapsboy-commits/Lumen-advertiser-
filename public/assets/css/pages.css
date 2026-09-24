@@ -715,8 +715,8 @@
 */
 .player-liquid-clock {
   position: fixed;
-  top: clamp(20px, 3cqw, 55px);
-  right: clamp(20px, 3cqw, 55px);
+  top: clamp(14px, 1.4cqw, 28px);
+  right: clamp(14px, 1.4cqw, 28px);
   z-index: 31;
   pointer-events: none;
   max-width: none;
@@ -775,18 +775,17 @@
 }
 
 .player-liquid-clock-card--detailed {
-  /* COMPACT panel: the user's call on the real TV was "still too big" -
-     this sizes the whole card to roughly a fifth of a 1920 canvas
-     (~560px max) with the whole information hierarchy intact and
-     readable. Height is content-driven. Every clamp() scales smoothly
-     between phone previews and large TVs. */
-  width: clamp(400px, 28vw, 560px);
-  padding: clamp(6px, 0.55vw, 10px) clamp(10px, 0.75vw, 14px);
+  /* COMPACT panel: a medium-sized glass card, never a billboard. Width is
+     roughly a sixth of a 1920 canvas (~400px max); height is fully
+     content-driven with tight padding so no element is surrounded by dead
+     space. Every clamp() scales smoothly between phone previews and TVs. */
+  width: clamp(300px, 21vw, 400px);
+  padding: clamp(8px, 0.6vw, 12px) clamp(12px, 0.9vw, 16px);
   flex-direction: row;
   align-items: stretch;
-  gap: clamp(6px, 0.6vw, 10px);
+  gap: clamp(10px, 0.9vw, 16px);
   text-align: left;
-  border-radius: 18px;
+  border-radius: 16px;
   background: linear-gradient(135deg, rgba(16, 28, 45, 0.86), rgba(14, 20, 32, 0.68));
   border-color: rgba(190, 224, 255, 0.34);
   box-shadow:
@@ -798,7 +797,7 @@
 
 .player-liquid-clock-main {
   min-width: 0;
-  flex: 0 0 43%;
+  flex: 0 0 auto;
   display: contents;
   flex-direction: column;
   justify-content: center;
@@ -812,11 +811,12 @@
 }
 .player-liquid-clock-kicker { display: none; }
 .player-liquid-clock-card--detailed .player-liquid-clock-kicker { display: block; }
-.player-liquid-clock-card--detailed .player-liquid-clock-main { flex: 0 0 36%; justify-content: center; }
-/* Clock column: prominent but compact. */
-.player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(24px, 1.8vw, 36px); line-height: 0.98; letter-spacing: 0; }
-.player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(10px, 0.72vw, 13px); margin-top: 3px; }
-.player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(9px, 0.65vw, 11px); letter-spacing: 0.3px; }
+/* Clock column sizes itself to its content - no reserved 36% track, which
+   was the main source of empty space beside the time. */
+.player-liquid-clock-card--detailed .player-liquid-clock-main { flex: 0 0 auto; justify-content: center; }
+.player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(20px, 1.5vw, 30px); line-height: 0.98; letter-spacing: 0; }
+.player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(9px, 0.62vw, 12px); margin-top: 3px; }
+.player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(8px, 0.55vw, 10px); letter-spacing: 0.3px; }
 
 .player-liquid-clock-date {
   position: relative;
@@ -872,16 +872,19 @@
 .player-liquid-clock-card--detailed .player-liquid-clock-weather { flex: 1; min-width: 0; }
 .player-liquid-clock-card--detailed .player-liquid-clock-weather { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 1px; justify-content: center; }
 /* Location: compact premium label. */
-.player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(10px, 0.78vw, 13px); color: rgba(225, 240, 255, 0.86); }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 7px; flex-wrap: wrap; align-items: center; }
-/* Weather artwork: clearly visible animation, balanced with the temp. */
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(38px, 2.9vw, 54px); height: clamp(38px, 2.9vw, 54px); }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(21px, 1.7vw, 33px); font-weight: 700; line-height: 0.95; }
-.player-liquid-clock-card--detailed .player-liquid-clock-weather-label { flex-basis: 100%; margin-left: clamp(44px, 3.3vw, 62px); margin-top: -2px; font-size: clamp(11px, 0.82vw, 14px); }
-.player-liquid-clock-card--detailed .player-liquid-clock-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding-top: 5px; margin-top: 2px; border-top: 1px solid rgba(196, 225, 255, 0.2); font-size: clamp(9px, 0.7vw, 12px); color: rgba(231, 243, 255, 0.76); }
-.player-liquid-clock-card--detailed .player-liquid-clock-metrics span { white-space: normal; line-height: 1.2; }
+.player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(9px, 0.62vw, 12px); color: rgba(225, 240, 255, 0.86); }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: clamp(6px, 0.5vw, 9px); flex-wrap: nowrap; align-items: center; }
+/* Weather artwork: recognizable and animated, but balanced - it must not
+   dominate the card. Condition sits INLINE beside the temperature (the old
+   flex-basis:100% + margin-left rule forced it onto its own indented line,
+   which is what read as "excessive empty space"). */
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(26px, 1.9vw, 36px); height: clamp(26px, 1.9vw, 36px); }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(18px, 1.35vw, 27px); font-weight: 700; line-height: 0.95; }
+.player-liquid-clock-card--detailed .player-liquid-clock-weather-label { font-size: clamp(10px, 0.7vw, 13px); min-width: 0; }
+.player-liquid-clock-card--detailed .player-liquid-clock-metrics { display: flex; flex-wrap: nowrap; gap: clamp(8px, 0.7vw, 12px); padding-top: clamp(4px, 0.35vw, 6px); margin-top: 2px; border-top: 1px solid rgba(196, 225, 255, 0.2); font-size: clamp(8px, 0.6vw, 11px); color: rgba(231, 243, 255, 0.76); }
+.player-liquid-clock-card--detailed .player-liquid-clock-metrics span { white-space: nowrap; line-height: 1.2; }
 .player-liquid-clock-wind-visual { display: none; }
-.player-liquid-clock-card--detailed .player-liquid-clock-wind-visual { display: inline-flex; flex-direction: column; gap: 2px; margin-left: auto; width: clamp(26px, 2vw, 38px); opacity: 0.78; }
+.player-liquid-clock-card--detailed .player-liquid-clock-wind-visual { display: inline-flex; flex-direction: column; gap: 2px; margin-left: auto; width: clamp(20px, 1.5vw, 30px); opacity: 0.78; flex-shrink: 0; }
 .player-liquid-clock-wind-visual i { display: block; height: 2px; border-radius: 2px; background: #8bd7ff; animation: wx-wind-streak 1.8s ease-in-out infinite; }
 .player-liquid-clock-wind-visual i:nth-child(1) { width: 100%; }
 .player-liquid-clock-wind-visual i:nth-child(2) { width: 72%; animation-delay: -0.4s; }
@@ -890,15 +893,22 @@
 
 .player-daily-quote {
   position: fixed;
-  left: clamp(20px, 1.667cqw, 44px);
-  bottom: clamp(18px, 1.667cqw, 44px);
+  left: clamp(14px, 1.4cqw, 28px);
+  bottom: clamp(14px, 1.4cqw, 28px);
   z-index: 31;
-  /* Substantially larger than the old clamp(10px, 0.7cqw, 14px): readable
-     from a real viewing distance while staying a minimal line of text -
-     no card, no pill, no quotation-mark icon (per the quote spec). The
-     max-width keeps the quote clear of the QR card on the right. */
-  max-width: min(42cqw, 560px);
-  color: rgba(255, 255, 255, 0.82);
+  /* Compact premium glass chip matching the weather panel's material -
+     readable from a real viewing distance, anchored bottom-left, and held
+     clear of the QR card on the right by max-width. No oversized quotation
+     mark, no heavy card. */
+  max-width: min(40cqw, 520px);
+  padding: clamp(8px, 0.7cqw, 14px) clamp(14px, 1.1cqw, 22px);
+  background: rgba(8, 12, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  color: rgba(255, 255, 255, 0.88);
   font-family: var(--font-display);
   font-size: clamp(16px, 1.5cqw, 26px);
   font-weight: 550;
@@ -917,25 +927,23 @@
    (per the spec: rebalance the layout, never shrink text into
    unreadability). */
 @media (orientation: portrait) {
-  .player-liquid-clock { max-width: 92vw; top: clamp(64px, 10vw, 110px); }
+  .player-liquid-clock { max-width: 92vw; top: clamp(64px, 10vw, 110px); right: clamp(12px, 2.6vw, 24px); }
   .player-liquid-clock-card { width: min(92vw, 340px); padding: 7px 8px 8px; gap: 7px; border-radius: 13px; }
-  .player-liquid-clock-main { flex-basis: 36%; }
   .player-liquid-clock-weather { gap: 3px 4px; }
-  .player-liquid-clock-card--detailed { width: min(88vw, 420px); padding: 7px 9px; gap: 6px; border-radius: 13px; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-main { flex-basis: 35%; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(20px, 5.4vw, 27px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(9px, 2.2vw, 11px); margin-top: 3px; }
+  .player-liquid-clock-card--detailed { width: min(72vw, 320px); padding: 8px 11px; gap: 9px; border-radius: 14px; }
+  .player-liquid-clock-card--detailed .player-liquid-clock-time { font-size: clamp(18px, 4.6vw, 24px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-date { font-size: clamp(8px, 2vw, 10px); margin-top: 3px; }
   .player-liquid-clock-card--detailed .player-liquid-clock-kicker { font-size: clamp(8px, 2vw, 10px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(9px, 2.2vw, 11px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-location { font-size: clamp(9px, 2.1vw, 11px); }
   .player-liquid-clock-card--detailed .player-liquid-clock-weather-topline { gap: 6px; }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(32px, 8vw, 41px); height: clamp(32px, 8vw, 41px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(17px, 4.4vw, 23px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-weather-label { margin-left: clamp(38px, 9.2vw, 47px); font-size: clamp(9px, 2.4vw, 12px); }
-  .player-liquid-clock-card--detailed .player-liquid-clock-metrics { gap: 4px; padding-top: 4px; margin-top: 1px; font-size: clamp(8px, 2vw, 10px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-icon { width: clamp(26px, 6.5vw, 34px); height: clamp(26px, 6.5vw, 34px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-temp { font-size: clamp(16px, 4vw, 21px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-weather-label { font-size: clamp(9px, 2.3vw, 12px); }
+  .player-liquid-clock-card--detailed .player-liquid-clock-metrics { gap: 7px; padding-top: 4px; margin-top: 1px; font-size: clamp(8px, 1.9vw, 10px); }
   /* Quote on portrait: lifted ABOVE the QR card's zone (QR sits
      bottom-right, ~240px wide + its offset) so the two can never overlap
      on a narrow canvas, and sized to stay readable at phone width. */
-  .player-daily-quote { bottom: 180px; max-width: 86vw; font-size: clamp(13px, 3.2vw, 19px); }
+  .player-daily-quote { bottom: 180px; max-width: 86vw; font-size: clamp(13px, 3.2vw, 19px); padding: 8px 14px; }
   .player-qr-card { width: 240px; }
   .player-qr-heading { font-size: 16px; }
 }
@@ -958,16 +966,16 @@
    clock/weather/QR/branding proportions identical on a phone
    preview and on a real portrait TV, with no per-element scaling.
 
-   Structure (top to bottom, over the advertisement):
-     topbar   LIVE | LUMEN DIGITAL ADS [+ screen chip]
-     clock    greeting / large time / date
-     place    screen location pill
-     weather  animated icon + temperature + condition, then
-              rain / humidity / wind metrics
-     spacer   the advertisement shows through
-     quote    daily quote (minimal, no card)
-     qr       real scannable QR card, bottom-right
-     walker   QR video man overlay (qr-video-walker.js)
+   Structure (over the advertisement):
+     topbar    LIVE | LUMEN DIGITAL ADS [+ screen chip]
+     infocard  compact glass card anchored TOP-RIGHT:
+               greeting / time / date, screen location, then
+               animated icon + temperature + condition and
+               rain / humidity / wind metrics
+     spacer    the advertisement shows through
+     quote     daily quote, bottom-left glass chip
+     qr        real scannable QR card, bottom-right
+     walker    QR video man overlay (qr-video-walker.js)
 */
 .portrait-display-stage {
   position: absolute;
@@ -1010,7 +1018,7 @@
 }
 .pd-scrim--top {
   top: 0;
-  height: 780px;
+  height: 560px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.42) 46%, rgba(0, 0, 0, 0) 100%);
 }
 .pd-scrim--bottom {
@@ -1019,10 +1027,11 @@
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.34) 52%, rgba(0, 0, 0, 0) 100%);
 }
 /* Content children paint above the scrims (which are absolutely
-   positioned earlier siblings). The scrims themselves and the fixed
-   .pd-walker are exempt - the walker's position comes from the shared
-   .qr-video-overlay rule and must never be overridden. */
-.pd-root > *:not(.pd-scrim):not(.pd-walker) { position: relative; }
+   positioned earlier siblings). The scrims, the fixed .pd-walker and the
+   absolutely-anchored .pd-infocard are exempt - the walker's position
+   comes from the shared .qr-video-overlay rule and the info card pins
+   itself to the stage's top-right corner; neither may be overridden. */
+.pd-root > *:not(.pd-scrim):not(.pd-walker):not(.pd-infocard) { position: relative; }
 
 .pd-topbar {
   align-self: stretch;
@@ -1053,39 +1062,68 @@
 }
 .pd-screen-chip[hidden] { display: none; }
 
+/* Compact glass info card anchored to the stage's TOP-RIGHT corner -
+   the Small Display counterpart of the Big Display's
+   .player-liquid-clock-card--detailed. Same material, same hierarchy
+   (clock / place / weather), sized in stage pixels so the whole card
+   stays a modest fraction of the 1080px canvas and the advertisement
+   remains dominant. Sits below the topbar (44px stage padding + ~48px
+   topbar row). */
+.pd-infocard {
+  position: absolute;
+  top: 132px;
+  right: 54px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: 430px;
+  padding: 22px 28px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgba(16, 28, 45, 0.86), rgba(14, 20, 32, 0.68));
+  border: 1px solid rgba(190, 224, 255, 0.34);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 20px rgba(112, 181, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  text-align: left;
+  pointer-events: none;
+}
+
 .pd-clock {
-  margin-top: 56px;
-  text-align: center;
+  text-align: left;
 }
 .pd-greeting {
-  font-size: 34px;
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 7px;
+  letter-spacing: 4px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.72);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 .pd-time {
-  margin-top: 6px;
-  font-size: 148px;
+  margin-top: 2px;
+  font-size: 72px;
   font-weight: 650;
   line-height: 1.02;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 3px 18px rgba(0, 0, 0, 0.6);
 }
 .pd-date {
-  margin-top: 8px;
-  font-size: 38px;
+  margin-top: 4px;
+  font-size: 24px;
   font-weight: 550;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   color: rgba(255, 255, 255, 0.75);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
 .pd-place {
-  margin-top: 28px;
-  font-size: 36px;
+  font-size: 24px;
   font-weight: 550;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
@@ -1096,30 +1134,27 @@
 }
 .pd-place[hidden] { display: none; }
 
+/* Weather inside the info card: the card itself is the glass surface, so
+   this block carries no second background - just a tight icon/temp/cond
+   row over a compact metrics row. */
 .pd-weather {
-  margin-top: 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding: 26px 46px;
-  border-radius: 30px;
-  background: rgba(10, 16, 28, 0.42);
-  border: 1px solid rgba(190, 224, 255, 0.26);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  align-items: stretch;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(196, 225, 255, 0.2);
   max-width: 100%;
 }
 .pd-weather-main {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 14px;
   min-width: 0;
 }
 .pd-weather-icon {
-  width: 124px;
-  height: 124px;
+  width: 62px;
+  height: 62px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -1127,7 +1162,7 @@
 }
 .pd-weather-icon svg { width: 100%; height: 100%; overflow: visible; display: block; }
 .pd-weather-temp {
-  font-size: 76px;
+  font-size: 42px;
   font-weight: 700;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
@@ -1135,40 +1170,52 @@
   white-space: nowrap;
 }
 .pd-weather-cond {
-  font-size: 38px;
+  font-size: 24px;
   font-weight: 550;
   color: rgba(255, 255, 255, 0.82);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 .pd-metrics {
   display: flex;
   align-items: center;
-  font-size: 34px;
+  font-size: 22px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.78);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 .pd-metric { white-space: nowrap; }
 .pd-metric + .pd-metric {
-  margin-left: 30px;
-  padding-left: 30px;
+  margin-left: 16px;
+  padding-left: 16px;
   border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .pd-spacer { flex: 1 1 0; }
 
+/* Quote: BOTTOM-LEFT glass chip matching the info card's material. Kept
+   clear of the bottom-right QR card by max-width, and lifted by the
+   QR row's own height in the flex column so the two never collide. */
 .pd-quote {
+  align-self: flex-start;
   margin-bottom: 28px;
-  max-width: 78%;
-  text-align: center;
-  font-size: 34px;
+  max-width: 60%;
+  padding: 20px 30px;
+  border-radius: 22px;
+  background: rgba(8, 12, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  text-align: left;
+  font-size: 30px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 

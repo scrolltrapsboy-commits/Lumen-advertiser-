@@ -61,24 +61,26 @@ export function mountPortraitDisplayOverlay(stageEl, opts = {}) {
         <span class="pd-screen-chip" hidden></span>
       </div>
 
-      <div class="pd-clock">
-        <div class="pd-greeting"></div>
-        <div class="pd-time">--:--</div>
-        <div class="pd-date"></div>
-      </div>
-
-      <div class="pd-place" hidden></div>
-
-      <div class="pd-weather">
-        <div class="pd-weather-main">
-          <span class="pd-weather-icon" data-condition="partly-cloudy" aria-hidden="true">${WEATHER_ICONS['partly-cloudy']}</span>
-          <span class="pd-weather-temp">--&deg;</span>
-          <span class="pd-weather-cond">Weather unavailable</span>
+      <div class="pd-infocard">
+        <div class="pd-clock">
+          <div class="pd-greeting"></div>
+          <div class="pd-time">--:--</div>
+          <div class="pd-date"></div>
         </div>
-        <div class="pd-metrics">
-          <span class="pd-metric">Rain --%</span>
-          <span class="pd-metric">Humidity --%</span>
-          <span class="pd-metric">Wind -- km/h</span>
+
+        <div class="pd-place" hidden></div>
+
+        <div class="pd-weather">
+          <div class="pd-weather-main">
+            <span class="pd-weather-icon" data-condition="partly-cloudy" aria-hidden="true">${WEATHER_ICONS['partly-cloudy']}</span>
+            <span class="pd-weather-temp">--&deg;</span>
+            <span class="pd-weather-cond">Weather unavailable</span>
+          </div>
+          <div class="pd-metrics">
+            <span class="pd-metric">Rain --%</span>
+            <span class="pd-metric">Humidity --%</span>
+            <span class="pd-metric">Wind -- km/h</span>
+          </div>
         </div>
       </div>
 

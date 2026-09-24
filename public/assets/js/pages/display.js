@@ -939,7 +939,12 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
      */
     function waitForVideoReady(video, timeoutMs = 8000) {
       if (!video) return Promise.resolve(false);
-      if (video.readyState >= 2) return Promise.resolve(true);
+      // Mirror the transition engines' own readiness test: a container can
+      // be fully "loaded" (readyState 4) while its video track is
+      // undecodable on this client (e.g. HEVC without a decoder), which
+      // leaves videoWidth at 0 and would hand the engine a blank texture.
+      const usable = () => video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0;
+      if (usable()) return Promise.resolve(true);
       return new Promise((resolve) => {
         const finish = (ok) => {
           clearTimeout(timer);
@@ -947,9 +952,9 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
           video.removeEventListener('error', onError);
           resolve(ok);
         };
-        const onReady = () => finish(true);
+        const onReady = () => { if (usable()) finish(true); };
         const onError = () => finish(false);
-        const timer = setTimeout(() => finish(video.readyState >= 2), timeoutMs);
+        const timer = setTimeout(() => finish(usable()), timeoutMs);
         video.addEventListener('loadeddata', onReady);
         video.addEventListener('error', onError);
       });
@@ -1157,7 +1162,12 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
          * blank/black transition frame.
          */
         if (prepared.type === 'video' && prepared.mainVideo) {
-          await waitForVideoReady(prepared.mainVideo);
+          const videoReady = await waitForVideoReady(prepared.mainVideo);
+          if (!videoReady) {
+            // Fail BEFORE mounting anything: the outgoing ad stays on
+            // screen and the error path below moves the rotation on.
+            throw new Error(`Incoming video never became decodable: ${ad.mediaUrl || ad.id}`);
+          }
         }
 
         /*
@@ -1389,6 +1399,18 @@ function logRenderDiagnostics(dlog, { ad, currentLayer, nextLayer, currentLayerI
          */
         if (canvasContainer) {
           canvasContainer.classList.remove('on');
+        }
+
+        /*
+         * Move the rotation PAST the advertisement that failed to prepare
+         * or transition. Without this, index never advances on failure and
+         * a single undecodable/unreachable media file freezes the screen
+         * on the outgoing ad forever. The failed ad is retried on the next
+         * full cycle, by which time it may well be playable.
+         */
+        index += 1;
+        if (index >= ads.length) {
+          index = 0;
         }
 
         /*
