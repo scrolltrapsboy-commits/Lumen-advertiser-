@@ -188,6 +188,13 @@ function forceShowLayer(layer, otherLayer) {
   layer.style.display = 'flex';
   layer.style.opacity = '1';
   layer.style.zIndex = '2';
+  // The pre-transition baseline (set just before the engine choice) hides
+  // the incoming layer with inline visibility/pointer-events. This is the
+  // no-transition / first-ad / fail-safe reveal, so it must fully normalize
+  // those too - otherwise the layer is "active" and opaque but still
+  // visibility:hidden, i.e. a black screen with a loaded advertisement in it.
+  layer.style.visibility = 'visible';
+  layer.style.pointerEvents = '';
   if (otherLayer && otherLayer !== layer) {
     stopLayerMedia(otherLayer);
     otherLayer.classList.remove('active', 'lumen-player-page-fall', 'lumen-player-page-fall-in', 'no-anim');
