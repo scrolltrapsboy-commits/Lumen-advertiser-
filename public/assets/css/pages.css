@@ -943,7 +943,7 @@
   /* Quote on portrait: lifted ABOVE the QR card's zone (QR sits
      bottom-right, ~240px wide + its offset) so the two can never overlap
      on a narrow canvas, and sized to stay readable at phone width. */
-  .player-daily-quote { bottom: 180px; max-width: 86vw; font-size: clamp(13px, 3.2vw, 19px); padding: 8px 14px; }
+  .player-daily-quote { bottom: 180px; max-width: min(78vw, 560px); font-size: clamp(14px, 3.4vw, 24px); padding: 8px 14px; }
   .player-qr-card { width: 240px; }
   .player-qr-heading { font-size: 16px; }
 }
