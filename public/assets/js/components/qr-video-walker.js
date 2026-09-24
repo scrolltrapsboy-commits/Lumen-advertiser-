@@ -28,19 +28,16 @@
  * hold duration, then play it forward. The two videos are simply two
  * halves of one continuous shot.
  *
- * The one moment that does need a real, scannable QR standing in for
- * the video's baked-in (not necessarily scannable, not dynamically
- * generated) QR pattern is while the card is sitting still: from the
- * moment placement finishes through the freeze and into the start of
- * the pickup video, up until the man's hand actually starts moving the
- * card (measured directly from qr-pickup.mp4's frames - the card is
- * still perfectly flat through frame ~90/192, ~3.75s at 24fps, and is
- * visibly tilting by frame ~92). The real DOM QR (#player-qr, from
- * qr-code.js) is shown at exactly that rect only for that span, and
- * the swap in/out is a hard, instant opacity toggle - no fade, no
- * transition - specifically because the canvas and the real card are
- * pixel-identical at the swap instants, so a fade would only risk a
- * double-exposure ghost that a true cut avoids.
+ * The video's baked-in QR pattern is not scannable and not dynamically
+ * generated, so it is only ever visible while the man physically
+ * carries the card (place and pickup playback). The moment placement
+ * finishes and the card sits still, the visible layer swaps to the
+ * REAL DOM QR (the qr-code.js card) at exactly the same rect
+ * (cardScale 1), and it stays on screen through the freeze and the
+ * empty gap until the next cycle begins. Every swap is a hard, instant
+ * opacity toggle - no fade, no transition - because the canvas and the
+ * real card occupy the same rect at the swap instants, so a fade would
+ * only risk a double-exposure ghost that a true cut avoids.
  *
  * State machine (exactly as specified, nothing extra):
  *   PLACE_PLAYING -> PICKUP_FROZEN_20S -> PICKUP_PLAYING -> EMPTY_10S -> repeat
@@ -69,21 +66,11 @@ const CARD = {
   bottom: 612 / VIDEO_H,
 };
 
-// One shared footprint for both source videos. The source card is rendered
-// at 64% of the live card width, which keeps the complete person/card
-// composition noticeably smaller without changing the source geometry.
-const SHARED_CARD_SCALE = 0.64;
-
-// Native QR artwork bounds measured from the stationary card in both videos.
-// The QR-only hold uses these same pixels, so its size and position are tied
-// to the physical QR carried by the video rather than the old full card.
-const QR_ARTWORK = {
-  left: 166 / VIDEO_W,
-  top: 166 / VIDEO_H,
-  right: 590 / VIDEO_W,
-  bottom: 590 / VIDEO_H,
-};
-
+// One shared footprint for both source videos. The baked card lands
+// EXACTLY on the live QR card's rect (cardScale 1) so the hard cuts
+// between the video's carried card and the real DOM QR during the
+// stationary hold never jump in size or position.
+const SHARED_CARD_SCALE = 1;
 
 // Luma-key thresholds for the transparency pass. Measured directly:
 // the videos' own background sits at RGB(1,1,1)-(2,2,2); the man's
@@ -96,13 +83,6 @@ const QR_ARTWORK = {
 const BLACK_LOW = 8;
 const BLACK_HIGH = 30;
 const BLACK_RANGE = BLACK_HIGH - BLACK_LOW;
-
-// qr-pickup.mp4 is 192 frames at 24fps (8s). The card is measurably
-// still flat through frame ~90 and visibly tilting (being lifted) by
-// frame ~92 - checked by sampling that range frame-by-frame. This is
-// the point at which the real DOM QR overlay is hidden so only the
-// video's own carried-away card is visible during the lift/exit.
-const GRIP_TIME_S = 90 / 24;
 
 const DURATIONS = {
   PICKUP_FROZEN_20S: 20000,
@@ -389,44 +369,37 @@ export function initQRVideoWalker(container, qrCardEl, opts = {}) {
     // placeVideo just ended on the stationary completed card; that
     // frame is pixel-identical to pickupVideo's own frame 0. Hold
     // pickupVideo there (paused, already preloaded) and swap the
-    // visible layer from canvas to the real DOM QR instantly.
+    // visible layer from the video's baked card to the REAL DOM QR
+    // instantly - same rect (cardScale 1), so the cut is seamless and
+    // the live, scannable QR is what viewers see for the whole hold.
     pickupVideo.currentTime = 0;
     pickupVideo.pause();
-    // Keep the placement video's final keyed frame visible. It contains the
-    // complete physical advertisement, with the man already out of frame.
-    // This is the exact visual that remains still during the 20-second hold.
-    showDomQR(false);
+    showCanvas(false);
+    showDomQR(true);
     activeVideo = pickupVideo;
     lastDrawnTime = -1;
-    showCanvas(true);
-    drawFrame();
     wait(DURATIONS.PICKUP_FROZEN_20S, statePickupPlaying);
   }
   function statePickupPlaying() {
     // Swap back from the real DOM QR to the canvas at the exact
-    // instant pickupVideo resumes from the same frame 0 it was frozen
-    // on - still pixel-identical, so still an instant, invisible cut. The
-    // The frozen physical advertisement is replaced by the pickup video's
-    // own identical first frame before the returning man becomes visible.
+    // instant pickupVideo resumes from the same frame 0 the hold
+    // parked on - same rect, so still an instant, invisible cut - then
+    // the returning man lifts the physical card away. The DOM QR stays
+    // hidden for the whole pickup playback; only the video's own
+    // carried-away card is visible during the lift/exit.
     showDomQR(false);
     showCanvas(true);
-    const gripTimer = wait(GRIP_TIME_S * 1000, () => {
-      // The man's hand has started moving the card in the video -
-      // hide the real overlay so only the video's carried-away card
-      // is shown for the rest of the lift/exit.
-    });
     playForward(pickupVideo, () => {
-      activeTimers.delete(gripTimer);
-      gripTimer.cancel();
-      showDomQR(false);
       stateEmpty10s();
     });
   }
   function stateEmpty10s() {
     // pickupVideo already ends on an empty frame (man fully exited),
-    // so hiding the canvas here is not itself a visible change.
+    // so hiding the canvas here is not itself a visible change. The
+    // live QR card stays on screen until the man returns with the
+    // physical card in the next cycle.
     showCanvas(false);
-    showDomQR(false);
+    showDomQR(true);
     wait(DURATIONS.EMPTY_10S, statePlacePlaying);
   }
 

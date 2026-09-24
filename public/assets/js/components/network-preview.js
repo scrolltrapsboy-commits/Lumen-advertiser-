@@ -5,10 +5,10 @@ import { mountPortraitDisplayOverlay } from './portrait-display-overlay.js';
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-function fetchScreenAds(screenId) {
+function fetchScreenFeed(screenId) {
   return apiFetch(`/api/display/${screenId}`)
-    .then((feed) => (feed && feed.ads) || [])
-    .catch(() => []);
+    .then((feed) => ({ ads: (feed && feed.ads) || [], config: (feed && feed.config) || null }))
+    .catch(() => ({ ads: [], config: null }));
 }
 
 // Fall motion: smoother, continuously-moving multi-stage keyframe set with
@@ -71,7 +71,7 @@ function ensureSmallFallStyles() {
  * applied to this outer layer only - never to the img/video itself - so
  * aspect ratio inside is never touched by the fall. The fall applies ONLY
  * to advertisement media: the persistent portrait overlay (clock, weather,
- * quote, QR, walker, branding) lives in a sibling layer above these pages
+ * quote, QR, branding) lives in a sibling layer above these pages
  * and never moves.
  */
 async function runSmallFallTransition(outgoing, incoming) {
@@ -173,7 +173,6 @@ export function mountNetworkPreview(container, opts = {}) {
     const rect = container.getBoundingClientRect();
     if (!rect.width) return;
     stage.style.transform = `scale(${rect.width / STAGE_W})`;
-    if (overlay) overlay.relayout();
   }
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(rescale) : null;
   if (resizeObserver) resizeObserver.observe(container);
@@ -181,7 +180,19 @@ export function mountNetworkPreview(container, opts = {}) {
   rescale();
 
   overlay = mountPortraitDisplayOverlay(stage);
-  overlay.relayout();
+
+  // The live, scannable QR (qr-code.js) encodes the same destination the
+  // real displays use - the site's configured URL - rendered exactly once
+  // at the portrait composition's bottom-right. No walker here: previews
+  // must never show the walker's baked-in video QR artwork beside it.
+  let qrUrl = null;
+  function setQrFor(config) {
+    const url = (config && config.siteUrl) || window.location.origin;
+    if (url === qrUrl) return;
+    qrUrl = url;
+    overlay.setQrDestination(url);
+  }
+  setQrFor(null);
 
   // Weather for whichever screen the showcase is currently walking
   // through - the screen's own configured location, refreshed on the
@@ -330,17 +341,19 @@ export function mountNetworkPreview(container, opts = {}) {
       if (labelEl) labelEl.textContent = screen.place || screen.id;
 
       // The persistent overlay switches to THIS screen's information in
-      // place - never rebuilt, so the clock/QR/walker never restart.
+      // place - never rebuilt, so the clock/QR never restart.
       weatherScreenId = screen.id;
       overlay.setPlace(screen.place || '');
       overlay.setScreenLabel(screen.id);
       showWeatherFor(screen.id);
 
-      const ads = (prefetched && prefetched.screenId === screen.id)
+      const feed = (prefetched && prefetched.screenId === screen.id)
         ? await prefetched.promise
-        : await fetchScreenAds(screen.id);
+        : await fetchScreenFeed(screen.id);
       prefetched = null;
       if (destroyed) return;
+      setQrFor(feed.config);
+      const ads = feed.ads;
 
       // Entering this screen's round: its Lumen intro always plays again,
       // every single time the screen becomes active - even on repeat loops.
@@ -367,7 +380,7 @@ export function mountNetworkPreview(container, opts = {}) {
         const nextIdx = (currentScreenIndex + 1) % screens.length;
         const nextScreen = screens[nextIdx];
         if (nextScreen) {
-          prefetched = { screenId: nextScreen.id, promise: fetchScreenAds(nextScreen.id) };
+          prefetched = { screenId: nextScreen.id, promise: fetchScreenFeed(nextScreen.id) };
         }
       }
 
@@ -382,7 +395,7 @@ export function mountNetworkPreview(container, opts = {}) {
           const nextIdx = (currentScreenIndex + 1) % screens.length;
           const nextScreen = screens[nextIdx];
           if (nextScreen) {
-            prefetched = { screenId: nextScreen.id, promise: fetchScreenAds(nextScreen.id) };
+            prefetched = { screenId: nextScreen.id, promise: fetchScreenFeed(nextScreen.id) };
           }
         }
         await wait(adDisplayMs);

@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "id": "b835da63-57a3-4a21-8311-7d9f9dbdf1f9",
+    "userEmail": "lumen@gmail.com",
+    "mediaType": "image",
+    "mediaUrl": "/uploads/89f687ce-4c9b-4d75-a291-b3a29e7f38a9",
+    "fileName": ".png",
+    "duration": 5,
+    "actualDurationSeconds": null,
+    "days": 7,
+    "screenId": "all",
+    "price": 700,
+    "sourceType": "ADMIN",
+    "status": "active",
+    "startDate": "2026-09-21",
+    "endDate": "2026-09-28",
+    "createdAt": 1789961789440,
+    "verification": null
+  },
+  {
+    "id": "48988791-b684-458e-8524-2a95339fd506",
+    "userEmail": "lumen@gmail.com",
+    "mediaType": "video",
+    "mediaUrl": "/uploads/bd284ecc-11ac-46de-b607-78ee7abd5045.mp4",
+    "fileName": "20260826_113731.mp4",
+    "duration": 7,
+    "actualDurationSeconds": 7,
+    "days": 7,
+    "screenId": "all",
+    "price": 1400,
+    "sourceType": "ADMIN",
+    "status": "active",
+    "startDate": "2026-09-21",
+    "endDate": "2026-09-28",
+    "createdAt": 1789961869912,
+    "verification": null
+  },
+  {
+    "id": "6475bba1-4c8b-4494-b913-c277c684a84b",
+    "userEmail": "lumen@gmail.com",
+    "mediaType": "image",
+    "mediaUrl": "/uploads/ba1552ae-16c7-4946-bf37-23656a72df2b.jpg",
+    "fileName": "20260717_225752.jpg",
+    "duration": 5,
+    "actualDurationSeconds": null,
+    "days": 7,
+    "screenId": "all",
+    "price": 700,
+    "sourceType": "ADMIN",
+    "status": "active",
+    "startDate": "2026-09-21",
+    "endDate": "2026-09-28",
+    "createdAt": 1789962461730,
+    "verification": null
+  }
+]

@@ -55,18 +55,6 @@
   position: fixed;
   pointer-events: none;
 }
-.qr-video-overlay-qr {
-  position: fixed;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.qr-video-overlay-qr {
-  display: block;
-  background: transparent;
-}
 .qr-video-overlay-source {
   position: fixed;
   left: 0;
@@ -290,9 +278,12 @@
    (mountSmallDisplayTV + the shared portrait display system), at a
    medium responsive size - prominent beside the copy, never a giant
    monitor dominating the hero. Portrait 9:16 is locked by the chassis's
-   own aspect-ratio; only the width responds to the viewport. */
-.hero-stage .small-display-tv-mount { width: clamp(240px, 24vw, 380px); }
-.hero-stage .small-display-tv { max-width: 380px; }
+   own aspect-ratio; the width responds to the viewport, and the
+   viewport-height term keeps the COMPLETE chassis (bezel + speaker +
+   stand, ~2.03x its width) inside short viewports instead of letting
+   it run off the fold. */
+.hero-stage .small-display-tv-mount { width: min(clamp(200px, 20vw, 320px), 38vh); }
+.hero-stage .small-display-tv { max-width: 320px; }
 
 .hero-orb { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: -1; }
 .orb-1 { width: 46vw; max-width: 480px; height: 46vw; max-height: 480px; background: var(--color-accent); opacity: 0.16; top: -8%; left: -8%; }
@@ -317,7 +308,7 @@
      source order once .hero-stage stops pulling itself to the front). */
   .hero { grid-template-columns: 1fr; text-align: left; padding-top: clamp(16px, 5vw, 32px); }
   .hero-stage { margin-top: var(--space-8); }
-  .hero-stage .small-display-tv-mount { width: min(100%, 340px); }
+  .hero-stage .small-display-tv-mount { width: min(100%, 300px, 36vh); }
   .hero h1 { max-width: none; }
   .hero-metrics { justify-content: flex-start; }
   .spatial-panel { padding: 9px 12px; }
@@ -328,7 +319,11 @@
 @media (max-width: 480px) {
   .hero-actions { flex-direction: column; align-items: stretch; }
   .hero-actions .btn { width: 100%; }
-  .hero-stage .small-display-tv-mount { width: min(100%, 300px); }
+  .hero-stage .small-display-tv-mount { width: min(100%, 260px, 40vh); }
+  /* Decorative float chips (same data as .hero-metrics above) would
+     overlap the TV frame at this width - the complete chassis must
+     stay unobstructed. */
+  .spatial-panel { display: none; }
 }
 
 /* ---- How it works: 3 spatial steps ---- */
@@ -1027,11 +1022,10 @@
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.34) 52%, rgba(0, 0, 0, 0) 100%);
 }
 /* Content children paint above the scrims (which are absolutely
-   positioned earlier siblings). The scrims, the fixed .pd-walker and the
-   absolutely-anchored .pd-infocard are exempt - the walker's position
-   comes from the shared .qr-video-overlay rule and the info card pins
-   itself to the stage's top-right corner; neither may be overridden. */
-.pd-root > *:not(.pd-scrim):not(.pd-walker):not(.pd-infocard) { position: relative; }
+   positioned earlier siblings). The scrims and the absolutely-anchored
+   .pd-infocard are exempt - the info card pins itself to the stage's
+   top-right corner and must not be overridden. */
+.pd-root > *:not(.pd-scrim):not(.pd-infocard) { position: relative; }
 
 .pd-topbar {
   align-self: stretch;
@@ -1235,22 +1229,6 @@
 .portrait-display-stage .pd-qr .player-qr-heading { font-size: 34px; }
 .portrait-display-stage .pd-qr .player-qr-cta { font-size: 22px; padding: 8px 16px; }
 .portrait-display-stage .pd-qr .player-qr-info { padding: 12px 22px; gap: 12px; }
-/* Invisible twin of the card above: a child of .pd-qr (whose in-flow
-   box the card sits flush against), so its rect always matches the
-   card's exactly. The walker sequences around THIS element, so its
-   opacity toggles never hide the real QR (the card stays permanently
-   visible; the walker's baked card - cardScale 1 - lands exactly on top
-   of it while the man carries it). */
-.pd-qr-anchor {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 480px;
-  aspect-ratio: 2.15;
-  opacity: 0;
-  pointer-events: none;
-}
-.pd-walker { z-index: 3; }
 
 /* Status veil (loading / no screen selected / no ads) - sized in stage
    pixels like everything else on the stage. */

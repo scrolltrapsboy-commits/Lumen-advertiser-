@@ -13,7 +13,7 @@ import { mountPortraitDisplayOverlay } from './portrait-display-overlay.js';
  * overlay (portrait-display-overlay.js - the same persistent
  * information system as the Big Display: LIVE badge, Lumen branding,
  * screen label, clock, date, greeting, location, animated weather,
- * daily quote, real scannable QR, QR video walker). Never
+ * daily quote and the real scannable QR). Never
  * fake/hardcoded example data.
  *
  * Deliberately, explicitly NOT the same as the Big Display's own ad
@@ -21,14 +21,14 @@ import { mountPortraitDisplayOverlay } from './portrait-display-overlay.js';
  *  - NO automatic ad rotation/playlist and NO transition of any kind
  *    (no fall, dissolve, particle, slide, flip, zoom) between ads or
  *    when a pending file is selected - the currently-relevant media is
- *    just shown, instantly, full stop. Only the weather icon and the
- *    QR walker keep their own independent animations. The Big
- *    Display's particle-transition/turbulent-dissolve systems are
- *    untouched and are not reused or referenced here.
+ *    just shown, instantly, full stop. Only the weather icon keeps its
+ *    own independent animation. The Big Display's
+ *    particle-transition/turbulent-dissolve systems are untouched and
+ *    are not reused or referenced here.
  *  - NO QR video walker: the preview's job is to represent the screen's
  *    information and how the uploaded ad will sit in the portrait frame;
- *    the place/pickup walker is a physical-display behavior, not part of
- *    that (and the mounting pages pass their own overlay opts). The QR
+ *    the place/pickup walker is a physical-display behavior (the Big
+ *    Display mounts it itself), not part of a preview. The QR
  *    CARD itself still renders - real and scannable, exactly as on the
  *    display.
  *
@@ -126,21 +126,13 @@ export function createScreenPreview(screenEl) {
     const rect = screenEl.getBoundingClientRect();
     if (!rect.width) return;
     stage.style.transform = `scale(${rect.width / STAGE_W})`;
-    // The QR walker's own layout() needs to re-run whenever THIS
-    // preview's rendered size changes (e.g. a sidebar collapsing), not
-    // only on an actual browser window resize - call its exposed
-    // relayout() directly. (Not a dispatched 'resize' event: layout()
-    // is already subscribed to 'resize' itself, so re-dispatching one
-    // from here would call it a second time on every real resize too.)
-    if (overlay) overlay.relayout();
   }
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(rescale) : null;
   if (resizeObserver) resizeObserver.observe(screenEl);
   window.addEventListener('resize', rescale);
   rescale();
 
-  overlay = mountPortraitDisplayOverlay(stage, { walker: false });
-  overlay.relayout();
+  overlay = mountPortraitDisplayOverlay(stage);
 
   let currentScreenId = null;
   let ads = [];
